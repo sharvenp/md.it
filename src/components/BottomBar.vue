@@ -1,14 +1,14 @@
 <template>
-  <div class="top-bar fixed-bottom">
-    <div class="d-flex">
+  <div class="bottom-bar">
+    <div class="d-flex align-items-center flex-bar">
       <button type="button" class="btn btn-dark">Open</button>
       <button type="button" class="btn btn-dark ms-2">Save</button>
-      <button type="button" class="btn btn-dark ms-5" @click="cycleLayoyt">
+      <button type="button" class="btn btn-dark ms-5" @click="cycleLayout">
         <svg
           v-if="currentLayout === 0"
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           fill="currentColor"
           class="bi bi-layout-sidebar"
           viewBox="0 0 16 16"
@@ -20,8 +20,8 @@
         <svg
           v-else-if="currentLayout === 1"
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           fill="currentColor"
           class="bi bi-layout-sidebar-reverse"
           viewBox="0 0 16 16"
@@ -33,8 +33,8 @@
         <svg
           v-else-if="currentLayout === 2"
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           fill="currentColor"
           class="bi bi-layout-split"
           viewBox="0 0 16 16"
@@ -44,29 +44,38 @@
           />
         </svg>
       </button>
+      <a
+        class="text-light ms-auto me-2 text-decoration-none"
+        href="https://github.com/sharvenp/md.it"
+        >md.it</a
+      >
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "TopBarV",
+  name: "BottomBarV",
   data() {
     return {
       currentLayout: 2,
     };
   },
   methods: {
-    cycleLayoyt() {
-      this.currentLayout = (this.currentLayout + 1) % 2;
+    cycleLayout() {
+      this.currentLayout = (this.currentLayout + 1) % 3;
     },
   },
 };
 </script>
 
 <style scoped>
-.top-bar {
+.bottom-bar {
   padding: 10px;
   background-color: rgb(26, 25, 25);
+}
+
+.flex-bar {
+  height: 3.9vh;
 }
 </style>
