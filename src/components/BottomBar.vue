@@ -1,8 +1,10 @@
 <template>
   <div class="bottom-bar">
     <div class="d-flex align-items-center flex-bar">
-      <button type="button" class="btn btn-dark">Open</button>
-      <button type="button" class="btn btn-dark ms-2">Save</button>
+      <button type="button" class="btn btn-dark" @click="openFile">Open</button>
+      <button type="button" class="btn btn-dark ms-2" @click="saveFile">
+        Save
+      </button>
       <button type="button" class="btn btn-dark ms-5" @click="cycleLayout">
         <svg
           v-if="currentLayout === 0"
@@ -45,7 +47,7 @@
         </svg>
       </button>
       <a
-        class="text-light ms-auto me-2 text-decoration-none"
+        class="logo ms-auto me-2 text-decoration-none"
         href="https://github.com/sharvenp/md.it"
         >md.it</a
       >
@@ -56,14 +58,18 @@
 <script>
 export default {
   name: "BottomBarV",
-  data() {
-    return {
-      currentLayout: 2,
-    };
+  props: {
+    currentLayout: Number,
   },
   methods: {
     cycleLayout() {
-      this.currentLayout = (this.currentLayout + 1) % 3;
+      this.$emit("layout-change");
+    },
+    openFile() {
+      this.$emit("open-file");
+    },
+    saveFile() {
+      this.$emit("save-file");
     },
   },
 };
@@ -77,5 +83,9 @@ export default {
 
 .flex-bar {
   height: 3.9vh;
+}
+
+.logo {
+  color: rgb(148, 148, 148);
 }
 </style>
