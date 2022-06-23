@@ -46,11 +46,15 @@ export default {
     return {
       inputText: "*Enter some text...*",
       currentLayout: 2,
+      renderer: undefined,
     };
   },
   computed: {
     compiledMarkdown: function () {
-      return DOMPurify.sanitize(marked(this.inputText));
+      return DOMPurify.sanitize(
+        marked(this.inputText, { renderer: this.renderer }),
+        { ADD_ATTR: ["target"] }
+      );
     },
     showLeftPane() {
       return this.currentLayout === 1 || this.currentLayout === 2;
@@ -58,6 +62,21 @@ export default {
     showRightPane() {
       return this.currentLayout === 0 || this.currentLayout === 2;
     },
+  },
+  mounted() {
+    this.renderer = new marked.Renderer();
+    this.renderer.link = function (href, title, text) {
+      console.log("CALLED", href, title, text);
+      return (
+        '<a target="_blank" href="' +
+        href +
+        '" title="' +
+        title +
+        '">' +
+        text +
+        "</a>"
+      );
+    };
   },
   methods: {
     update(e) {

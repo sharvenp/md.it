@@ -5,7 +5,7 @@
       <button type="button" class="btn btn-dark ms-2" @click="saveFile">
         Save
       </button>
-      <button type="button" class="btn btn-dark ms-5" @click="cycleLayout">
+      <button type="button" class="btn btn-dark ms-4" @click="cycleLayout">
         <svg
           v-if="currentLayout === 0"
           xmlns="http://www.w3.org/2000/svg"
@@ -49,6 +49,7 @@
       <a
         class="logo ms-auto me-2 text-decoration-none"
         href="https://github.com/sharvenp/md.it"
+        target="_blank"
         >md.it</a
       >
     </div>

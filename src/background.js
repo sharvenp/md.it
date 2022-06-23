@@ -24,11 +24,11 @@ async function createWindow() {
   });
 
   win.removeMenu();
-
-  win.webContents.on("new-window", function (event, url) {
-    event.preventDefault();
+  win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
+    return { action: "deny" };
   });
+  win.on("page-title-updated", (event) => event.preventDefault());
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
