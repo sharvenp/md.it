@@ -60,7 +60,7 @@
         </svg>
       </button>
       <a
-        class="logo ms-auto me-2 text-decoration-none"
+        class="logo ms-auto me-2 text-decoration-none noselect"
         href="https://github.com/sharvenp/md.it"
         target="_blank"
         >md.it</a
@@ -97,7 +97,7 @@ export default {
 <style scoped>
 .bottom-bar {
   padding: 10px;
-  background-color: rgb(26, 25, 25);
+  background-color: rgb(8, 10, 14);
 }
 
 .flex-bar {
@@ -105,6 +105,6 @@ export default {
 }
 
 .logo {
-  color: rgb(148, 148, 148);
+  color: rgb(189, 185, 185);
 }
 </style>

@@ -44,16 +44,21 @@ export default {
   },
   data() {
     return {
-      inputText: "*Enter some text...*",
+      inputText: `# New document
+
+*Type something...*
+`,
       currentLayout: 2,
       renderer: undefined,
     };
   },
   computed: {
     compiledMarkdown: function () {
-      return DOMPurify.sanitize(
-        marked(this.inputText, { renderer: this.renderer })
-      );
+      // return DOMPurify.sanitize(
+      //   marked(this.inputText, { renderer: this.renderer })
+      // );
+
+      return marked(this.inputText, { renderer: this.renderer });
     },
     showLeftPane() {
       return this.currentLayout === 1 || this.currentLayout === 2;
@@ -82,8 +87,26 @@ export default {
         node.setAttribute("target", "_blank");
       }
     });
+
+    // override the key handler to allow tabbing and stuff
+    var inputEle = document.getElementById("input");
+    if (inputEle.addEventListener) {
+      inputEle.addEventListener("keydown", this._keyHandler, false);
+    } else if (inputEle.attachEvent) {
+      inputEle.attachEvent("onkeydown", this._keyHandler); /* damn IE hack */
+    }
   },
   methods: {
+    _keyHandler(e) {
+      var TABKEY = 9;
+      if (e.keyCode == TABKEY) {
+        this.inputText += "\t";
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        return false;
+      }
+    },
     update(e) {
       this.inputText = e.target.value;
 
@@ -113,25 +136,17 @@ export default {
 </script>
 
 <style scoped>
-textarea {
-  resize: none;
-  border: none;
-  outline: none;
-  background-color: rgb(39, 39, 39) !important;
-  color: white !important;
-}
-
 .view {
   margin: 0 12px 0 12px;
   text-align: left;
-  background-color: rgb(39, 39, 39);
+  background-color: rgb(15, 20, 27) !important;
 }
 
 .divide-right {
-  border-right: rgb(128, 128, 128) 2px solid;
+  border-right: rgb(48, 54, 61) 2px solid;
 }
 .divide-left {
-  border-left: rgb(128, 128, 128) 2px solid;
+  border-left: rgb(48, 54, 61) 2px solid;
 }
 
 .input {
@@ -143,13 +158,17 @@ textarea {
   border-radius: 0 !important;
 }
 
+textarea {
+  resize: none;
+  border: none;
+  outline: none;
+  background-color: rgb(13, 17, 23) !important;
+  color: white !important;
+}
+
 .preview {
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  color: white;
-  background-color: rgb(39, 39, 39) !important;
   width: 100%;
-  height: 100%;
-  padding: 20px;
+  padding: 20px 20px 40px 20px;
 }
 
 .column {
