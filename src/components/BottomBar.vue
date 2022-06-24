@@ -1,7 +1,20 @@
 <template>
   <div class="bottom-bar">
     <div class="d-flex align-items-center flex-bar">
-      <button type="button" class="btn btn-dark" @click="openFile">Open</button>
+      <input
+        type="file"
+        ref="fileInput"
+        @change="openFile"
+        hidden
+        accept=".md,.txt"
+      />
+      <button
+        type="button"
+        class="btn btn-dark"
+        @click="$refs.fileInput.click()"
+      >
+        Open
+      </button>
       <button type="button" class="btn btn-dark ms-2" @click="saveFile">
         Save
       </button>
@@ -66,8 +79,13 @@ export default {
     cycleLayout() {
       this.$emit("layout-change");
     },
-    openFile() {
-      this.$emit("open-file");
+    openFile(event) {
+      let file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (res) => {
+        this.$emit("open-file", res.target.result);
+      };
+      reader.readAsText(file);
     },
     saveFile() {
       this.$emit("save-file");

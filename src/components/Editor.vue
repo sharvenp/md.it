@@ -52,8 +52,7 @@ export default {
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
-        marked(this.inputText, { renderer: this.renderer }),
-        { ADD_ATTR: ["target"] }
+        marked(this.inputText, { renderer: this.renderer })
       );
     },
     showLeftPane() {
@@ -66,7 +65,6 @@ export default {
   mounted() {
     this.renderer = new marked.Renderer();
     this.renderer.link = function (href, title, text) {
-      console.log("CALLED", href, title, text);
       return (
         '<a target="_blank" href="' +
         href +
@@ -77,6 +75,13 @@ export default {
         "</a>"
       );
     };
+
+    // add hook to override targer in a tags
+    DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+      if ("target" in node) {
+        node.setAttribute("target", "_blank");
+      }
+    });
   },
   methods: {
     update(e) {
@@ -95,8 +100,8 @@ export default {
     onLayoutChange() {
       this.currentLayout = (this.currentLayout + 1) % 3;
     },
-    onOpenFile() {
-      // TODO
+    onOpenFile(data) {
+      this.inputText = data;
       console.log("open file");
     },
     onSaveFile() {
