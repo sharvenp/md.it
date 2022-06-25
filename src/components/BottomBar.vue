@@ -97,7 +97,7 @@ export default {
 <style scoped>
 .bottom-bar {
   padding: 10px;
-  background-color: rgb(8, 10, 14);
+  background-color: rgb(14, 14, 14);
 }
 
 .flex-bar {

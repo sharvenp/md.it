@@ -9,16 +9,16 @@
         <textarea
           v-model="inputText"
           @input="update"
-          id="input"
+          ref="input"
           class="form-control input"
         ></textarea>
       </div>
       <div
         v-if="showRightPane"
         class="col p-0 column divide-left"
-        id="preview-column"
+        ref="preview"
       >
-        <div v-html="compiledMarkdown" id="preview" class="preview"></div>
+        <div v-html="compiledMarkdown" class="preview"></div>
       </div>
     </div>
     <div class="row">
@@ -50,6 +50,7 @@ export default {
 `,
       currentLayout: 2,
       renderer: undefined,
+      keysPressed: {},
     };
   },
   computed: {
@@ -89,33 +90,58 @@ export default {
     });
 
     // override the key handler to allow tabbing and stuff
-    var inputEle = document.getElementById("input");
-    if (inputEle.addEventListener) {
-      inputEle.addEventListener("keydown", this._keyHandler, false);
-    } else if (inputEle.attachEvent) {
-      inputEle.attachEvent("onkeydown", this._keyHandler); /* damn IE hack */
-    }
+    this.$refs.input.addEventListener(
+      "keydown",
+      (e) => {
+        this.keysPressed[e.key] = true;
+        this.keyHandler(e);
+      },
+      false
+    );
+    this.$refs.input.addEventListener(
+      "keyup",
+      (e) => {
+        if (e.key in this.keysPressed) {
+          delete this.keysPressed[e.key];
+        }
+        this.keyHandler(e);
+      },
+      false
+    );
   },
   methods: {
-    _keyHandler(e) {
-      var TABKEY = 9;
-      if (e.keyCode == TABKEY) {
-        this.inputText += "\t";
-        if (e.preventDefault) {
-          e.preventDefault();
+    keyHandler(e) {
+      let handled = false;
+
+      if (this.keysPressed["Tab"]) {
+        let idx = this.$refs.input.selectionStart;
+
+        if (this.keysPressed["Shift"]) {
+          if (
+            idx >= 4 &&
+            this.$refs.input.value.substring(idx - 4, idx) === "    "
+          ) {
+            // remove tab
+            this.$refs.input.setRangeText("", idx - 4, idx, "end");
+          }
+        } else {
+          // add tab
+          this.$refs.input.setRangeText("    ", idx, idx, "end");
         }
-        return false;
+        handled = true;
       }
+
+      if (handled) e.preventDefault();
     },
     update(e) {
       this.inputText = e.target.value;
 
       // calculate the scroll to keep in sync
-      var inputEle = document.getElementById("input");
+      var inputEle = this.$refs.input;
       let relativeScroll =
         (inputEle.scrollTop + inputEle.offsetHeight) / inputEle.scrollHeight;
 
-      var previewEle = document.getElementById("preview-column");
+      var previewEle = this.$refs.preview;
       previewEle.scrollTop = Math.round(
         previewEle.scrollHeight * relativeScroll - previewEle.offsetHeight
       );
@@ -139,7 +165,7 @@ export default {
 .view {
   margin: 0 12px 0 12px;
   text-align: left;
-  background-color: rgb(15, 20, 27) !important;
+  background-color: rgb(33, 33, 33) !important;
 }
 
 .divide-right {
@@ -162,7 +188,7 @@ textarea {
   resize: none;
   border: none;
   outline: none;
-  background-color: rgb(13, 17, 23) !important;
+  background-color: rgb(27, 27, 27) !important;
   color: white !important;
 }
 

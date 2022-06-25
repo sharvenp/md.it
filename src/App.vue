@@ -16,7 +16,7 @@ export default {
 html,
 body {
   height: 100%;
-  background-color: rgb(15, 20, 27) !important;
+  background-color: rgb(33, 33, 33) !important;
   color: white !important;
 }
 
@@ -36,16 +36,22 @@ p {
 }
 
 code {
-  background-color: rgba(87, 87, 87, 0.05) !important;
   padding: 5px;
+  border: 1px solid rgb(139, 139, 139);
+  background-color: rgba(21, 28, 36, 0.315);
+  border-radius: 3px;
 }
 
 pre {
   border: 1px solid rgb(139, 139, 139);
   border-radius: 3px;
-  background-color: rgba(13, 16, 19, 0.05) !important;
+  background-color: rgba(21, 28, 36, 0.315) !important;
   width: 100%;
   padding: 10px;
+}
+pre > code {
+  border: none;
+  background-color: none;
 }
 
 table,
