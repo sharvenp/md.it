@@ -37,6 +37,8 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 import BottomBarV from "./BottomBar.vue";
 
+const TAB_SIZE = 4;
+
 export default {
   name: "EditorV",
   components: {
@@ -55,11 +57,9 @@ export default {
   },
   computed: {
     compiledMarkdown: function () {
-      // return DOMPurify.sanitize(
-      //   marked(this.inputText, { renderer: this.renderer })
-      // );
-
-      return marked(this.inputText, { renderer: this.renderer });
+      return DOMPurify.sanitize(
+        marked(this.inputText, { renderer: this.renderer })
+      );
     },
     showLeftPane() {
       return this.currentLayout === 1 || this.currentLayout === 2;
@@ -82,14 +82,14 @@ export default {
       );
     };
 
-    // add hook to override targer in a tags
+    // add hook to override target in anchor tags
     DOMPurify.addHook("afterSanitizeAttributes", function (node) {
       if ("target" in node) {
         node.setAttribute("target", "_blank");
       }
     });
 
-    // override the key handler to allow tabbing and stuff
+    // listen for key presses and handle them accordingly
     this.$refs.input.addEventListener(
       "keydown",
       (e) => {
@@ -112,29 +112,93 @@ export default {
   methods: {
     keyHandler(e) {
       let handled = false;
-
+      let textValue = this.$refs.input.value;
       if (this.keysPressed["Tab"]) {
+        // insert tab character (TAB_SIZE spaces)
+
         let idx = this.$refs.input.selectionStart;
+        let tab = " ".repeat(TAB_SIZE); // tab is made of spaces
 
         if (this.keysPressed["Shift"]) {
+          // shift + tab removes tab
+          // check if tab can be removed
           if (
-            idx >= 4 &&
-            this.$refs.input.value.substring(idx - 4, idx) === "    "
+            idx >= TAB_SIZE &&
+            textValue.substring(idx - TAB_SIZE, idx) === tab
           ) {
             // remove tab
-            this.$refs.input.setRangeText("", idx - 4, idx, "end");
+            this.$refs.input.setRangeText("", idx - TAB_SIZE, idx, "end");
           }
         } else {
           // add tab
-          this.$refs.input.setRangeText("    ", idx, idx, "end");
+          this.$refs.input.setRangeText(tab, idx, idx, "end");
         }
         handled = true;
       }
 
-      if (handled) e.preventDefault();
+      if (this.keysPressed["Control"]) {
+        let startIdx = this.$refs.input.selectionStart;
+        let endIdx = this.$refs.input.selectionEnd;
+
+        if (this.keysPressed["b"]) {
+          // bold
+          this.$refs.input.setRangeText("**", startIdx, startIdx, "end");
+          this.$refs.input.setRangeText("**", endIdx + 2, endIdx + 2, "end"); // need to add 2 to account for the asteriks added
+          handled = true;
+        } else if (this.keysPressed["i"]) {
+          // italics
+          this.$refs.input.setRangeText("*", startIdx, startIdx, "end");
+          this.$refs.input.setRangeText("*", endIdx + 1, endIdx + 1, "end"); // need to add 1 to account for the asteriks added
+          handled = true;
+        }
+      }
+
+      if (this.keysPressed["Alt"]) {
+        // move line up or down
+        let direction = this.keysPressed["ArrowUp"]
+          ? -1
+          : this.keysPressed["ArrowDown"]
+          ? 1
+          : 0;
+        if (direction !== 0) {
+          let textLines = this.$refs.input.value
+            .substr(0, this.$refs.input.selectionStart)
+            .split("\n");
+          let lineIdx = textLines.length - 1;
+          let allLines = this.$refs.input.value.split("\n");
+          if (
+            lineIdx + direction >= 0 &&
+            lineIdx + direction <= allLines.length - 1
+          ) {
+            // move the line
+            const line = allLines.splice(lineIdx, 1)[0];
+            allLines.splice(lineIdx + direction, 0, line);
+            this.$refs.input.value = allLines.join("\n");
+
+            // reposition the cursor
+            let stringLength = 0;
+            for (let i = 0; i < lineIdx + direction; i++) {
+              stringLength += allLines[i].length + 1; // add 1 for new line
+            }
+
+            const newCursorIdx = this.$refs.input.value.indexOf(
+              line,
+              stringLength
+            );
+            this.$refs.input.setSelectionRange(newCursorIdx, newCursorIdx);
+          }
+
+          handled = true;
+        }
+      }
+
+      if (handled) {
+        e.preventDefault();
+        this.update();
+      }
     },
-    update(e) {
-      this.inputText = e.target.value;
+    update() {
+      this.inputText = this.$refs.input.value;
 
       // calculate the scroll to keep in sync
       var inputEle = this.$refs.input;
@@ -146,9 +210,6 @@ export default {
         previewEle.scrollHeight * relativeScroll - previewEle.offsetHeight
       );
     },
-    onLayoutChange() {
-      this.currentLayout = (this.currentLayout + 1) % 3;
-    },
     onOpenFile(data) {
       this.inputText = data;
       console.log("open file");
@@ -156,6 +217,9 @@ export default {
     onSaveFile() {
       // TODO
       console.log("save file");
+    },
+    onLayoutChange() {
+      this.currentLayout = (this.currentLayout + 1) % 3;
     },
   },
 };
