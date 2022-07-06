@@ -36,8 +36,10 @@
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import BottomBarV from "./BottomBar.vue";
+import copy from "copy-to-clipboard";
 
 const TAB_SIZE = 4;
+const MAX_HISTORY_SIZE = 100;
 
 export default {
   name: "EditorV",
@@ -53,6 +55,7 @@ export default {
       currentLayout: 2,
       renderer: undefined,
       keysPressed: {},
+      history: [],
     };
   },
   computed: {
@@ -94,7 +97,7 @@ export default {
       "keydown",
       (e) => {
         this.keysPressed[e.key] = true;
-        this.keyHandler(e);
+        this.keyInterceptor(e);
       },
       false
     );
@@ -104,17 +107,28 @@ export default {
         if (e.key in this.keysPressed) {
           delete this.keysPressed[e.key];
         }
-        this.keyHandler(e);
+        this.keyInterceptor(e);
       },
       false
     );
+    window.onblur = () => {
+      this.keysPressed = {};
+    };
   },
   methods: {
-    keyHandler(e) {
-      let handled = false;
+    keyInterceptor(e) {
+      let intercepted = false;
       let textValue = this.$refs.input.value;
+      let textLines = this.$refs.input.value
+        .substr(0, this.$refs.input.selectionStart)
+        .split("\n");
+      let lineIdx = textLines.length - 1;
+      let allLines = this.$refs.input.value.split("\n");
+
       if (this.keysPressed["Tab"]) {
         // insert tab character (TAB_SIZE spaces)
+
+        this.pushHistory();
 
         let idx = this.$refs.input.selectionStart;
         let tab = " ".repeat(TAB_SIZE); // tab is made of spaces
@@ -133,7 +147,7 @@ export default {
           // add tab
           this.$refs.input.setRangeText(tab, idx, idx, "end");
         }
-        handled = true;
+        intercepted = true;
       }
 
       if (this.keysPressed["Control"]) {
@@ -142,14 +156,48 @@ export default {
 
         if (this.keysPressed["b"]) {
           // bold
+          this.pushHistory();
+
           this.$refs.input.setRangeText("**", startIdx, startIdx, "end");
           this.$refs.input.setRangeText("**", endIdx + 2, endIdx + 2, "end"); // need to add 2 to account for the asteriks added
-          handled = true;
+          intercepted = true;
         } else if (this.keysPressed["i"]) {
           // italics
+          this.pushHistory();
+
           this.$refs.input.setRangeText("*", startIdx, startIdx, "end");
           this.$refs.input.setRangeText("*", endIdx + 1, endIdx + 1, "end"); // need to add 1 to account for the asteriks added
-          handled = true;
+          intercepted = true;
+        } else if (this.keysPressed["c"] || this.keysPressed["x"]) {
+          if (startIdx === endIdx) {
+            this.pushHistory();
+
+            // copy line
+            copy(allLines[lineIdx] + "\n\n"); // copy to clipboard
+            if (this.keysPressed["x"]) {
+              // cut line
+              allLines.splice(lineIdx, 1);
+              this.$refs.input.value = allLines.join("\n");
+
+              // reposition the cursor
+              let stringLength = 0;
+              for (
+                let i = 0;
+                i < Math.min(0, Math.max(lineIdx, allLines.length - 1));
+                i++
+              ) {
+                stringLength += allLines[i].length + 1; // add 1 for new line
+              }
+              this.$refs.input.setSelectionRange(stringLength, stringLength);
+            }
+            intercepted = true;
+          }
+        } else if (this.keysPressed["z"]) {
+          // undo
+          if (this.history.length > 0) {
+            const lastText = this.history.shift();
+            this.$refs.input.value = lastText;
+          }
         }
       }
 
@@ -161,11 +209,6 @@ export default {
           ? 1
           : 0;
         if (direction !== 0) {
-          let textLines = this.$refs.input.value
-            .substr(0, this.$refs.input.selectionStart)
-            .split("\n");
-          let lineIdx = textLines.length - 1;
-          let allLines = this.$refs.input.value.split("\n");
           if (
             lineIdx + direction >= 0 &&
             lineIdx + direction <= allLines.length - 1
@@ -188,12 +231,12 @@ export default {
             this.$refs.input.setSelectionRange(newCursorIdx, newCursorIdx);
           }
 
-          handled = true;
+          intercepted = true;
         }
       }
 
-      if (handled) {
-        e.preventDefault();
+      if (intercepted) {
+        e.preventDefault(); // prevent default keystroke behavior
         this.update();
       }
     },
@@ -217,6 +260,12 @@ export default {
     onSaveFile() {
       // TODO
       console.log("save file");
+    },
+    pushHistory() {
+      this.history.push(this.inputText);
+      if (this.history.length > MAX_HISTORY_SIZE) {
+        this.history.shift();
+      }
     },
     onLayoutChange() {
       this.currentLayout = (this.currentLayout + 1) % 3;

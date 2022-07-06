@@ -15,6 +15,7 @@
   "dependencies": {
     "@popperjs/core": "^2.11.5",
     "bootstrap": "^5.2.0-beta1",
+    "copy-to-clipboard": "^3.3.1",
     "core-js": "^3.8.3",
     "dompurify": "^2.3.8",
     "marked": "^4.0.17",
