@@ -16,8 +16,6 @@ export default {
 html,
 body {
   height: 100%;
-  background-color: rgb(33, 33, 33) !important;
-  color: white !important;
 }
 
 h1,
