@@ -13,6 +13,15 @@ export default {
 };
 </script>
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+
+#app {
+  font-family: "Open Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 html,
 body {
   height: 100%;
@@ -21,11 +30,16 @@ body {
 h1,
 h2,
 h3 {
+  font-weight: bold;
   margin-top: 20px !important;
   margin-right: 20px !important;
   width: 100%;
   border-bottom: 1px solid rgba(255, 255, 255, 0.158);
   padding-bottom: 10px;
+}
+
+h3 {
+  border: none !important;
 }
 
 p {
@@ -34,7 +48,8 @@ p {
 }
 
 code {
-  padding: 5px;
+  padding: 2px;
+  margin: 2px;
   border: 1px solid rgb(139, 139, 139);
   background-color: rgba(21, 28, 36, 0.315);
   border-radius: 3px;
@@ -57,7 +72,11 @@ th,
 td {
   border: 1px solid rgba(255, 255, 255, 0.548) !important;
   border-collapse: collapse;
-  padding: 5px;
+  padding: 10px;
+}
+
+table {
+  border: 2px solid rgba(255, 255, 255, 0.548) !important;
 }
 
 .noselect {

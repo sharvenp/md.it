@@ -80,12 +80,7 @@ export default {
       this.$emit("layout-change");
     },
     openFile(event) {
-      let file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (res) => {
-        this.$emit("open-file", res.target.result);
-      };
-      reader.readAsText(file);
+      this.$emit("open-file", event.target.files[0]);
     },
     saveFile() {
       this.$emit("save-file");
@@ -97,11 +92,12 @@ export default {
 <style scoped>
 .bottom-bar {
   padding: 10px;
-  background-color: rgb(14, 14, 14);
+  background-color: rgb(23, 24, 29);
+  border-top: rgb(48, 54, 61) 2px solid;
 }
 
 .flex-bar {
-  height: 3.9vh;
+  height: 3.7vh;
 }
 
 .logo {

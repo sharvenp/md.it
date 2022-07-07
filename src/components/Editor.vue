@@ -14,7 +14,7 @@
           }"
           :autofocus="true"
           :indent-with-tab="true"
-          :tab-size="4"
+          :tab-size="2"
           :extensions="extensions"
         />
       </div>
@@ -39,9 +39,11 @@
 
 <script>
 import { Codemirror } from "vue-codemirror";
-// import { markdown } from "@codemirror/lang-markdown";
+import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
+
 import { marked } from "marked";
+import { saveAs } from "file-saver";
 import DOMPurify from "dompurify";
 import BottomBarV from "./BottomBar.vue";
 
@@ -52,7 +54,7 @@ export default {
     BottomBarV,
   },
   setup() {
-    const extensions = [oneDark];
+    const extensions = [markdown(), oneDark];
     return {
       extensions,
     };
@@ -65,8 +67,6 @@ export default {
 `,
       currentLayout: 2,
       renderer: undefined,
-      keysPressed: {},
-      history: [],
     };
   },
   computed: {
@@ -104,26 +104,18 @@ export default {
     });
   },
   methods: {
-    update() {
-      this.inputText = this.$refs.input.value;
-
-      // calculate the scroll to keep in sync
-      var inputEle = this.$refs.input;
-      let relativeScroll =
-        (inputEle.scrollTop + inputEle.offsetHeight) / inputEle.scrollHeight;
-
-      var previewEle = this.$refs.preview;
-      previewEle.scrollTop = Math.round(
-        previewEle.scrollHeight * relativeScroll - previewEle.offsetHeight
-      );
-    },
-    onOpenFile(data) {
-      this.inputText = data;
-      console.log("open file");
+    onOpenFile(file) {
+      const reader = new FileReader();
+      reader.onload = (res) => {
+        this.inputText = res.target.result;
+      };
+      reader.readAsText(file);
     },
     onSaveFile() {
-      // TODO
-      console.log("save file");
+      let blob = new Blob([this.inputText], {
+        type: "text/plain;charset=utf-8",
+      });
+      saveAs(blob, "untitled.md");
     },
     onLayoutChange() {
       this.currentLayout = (this.currentLayout + 1) % 3;
@@ -132,7 +124,13 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap");
+
+.cm-editor * {
+  font-family: "Fira Mono", monospace;
+}
+
 .view {
   margin: 0 12px 0 12px;
 }
@@ -149,8 +147,8 @@ export default {
   height: auto;
   min-height: 100%;
   padding: 20px 20px 40px 20px;
-  background-color: rgb(33, 33, 33) !important;
-  color: white !important;
+  background-color: rgb(38, 43, 51);
+  color: white;
   text-align: left;
 }
 

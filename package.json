@@ -13,12 +13,16 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@codemirror/lang-markdown": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
     "@codemirror/theme-one-dark": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
     "@popperjs/core": "^2.11.5",
     "bootstrap": "^5.2.0-beta1",
     "codemirror": "^6.0.1",
     "core-js": "^3.8.3",
     "dompurify": "^2.3.8",
+    "file-saver": "^2.0.5",
     "marked": "^4.0.17",
     "vue": "^3.2.13",
     "vue-codemirror": "^6.0.0"
