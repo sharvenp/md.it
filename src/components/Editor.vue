@@ -16,6 +16,7 @@
           :indent-with-tab="true"
           :tab-size="2"
           :extensions="extensions"
+          @change="onUpdate"
         />
       </div>
       <div
@@ -27,11 +28,12 @@
       </div>
     </div>
     <div class="row">
-      <BottomBarV
+      <ToolBarV
         :currentLayout="currentLayout"
         @layout-change="onLayoutChange"
         @open-file="onOpenFile"
         @save-file="onSaveFile"
+        @save-as-file="onSaveAsFile"
       />
     </div>
   </div>
@@ -44,15 +46,13 @@ import { oneDark } from "@codemirror/theme-one-dark";
 
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import BottomBarV from "./BottomBar.vue";
-
-import { saveAs } from "file-saver";
+import ToolBarV from "./ToolBar.vue";
 
 export default {
   name: "EditorV",
   components: {
     Codemirror,
-    BottomBarV,
+    ToolBarV,
   },
   data() {
     return {
@@ -70,18 +70,6 @@ export default {
       extensions,
     };
   },
-  async created() {
-    // load text from swp file
-    let swpData = await window.ipcRenderer.call("LOAD_SWP");
-    this.inputText = swpData;
-
-    // backup every 10 seconds
-    setInterval(async () => {
-      // dump text to swp file
-      await window.ipcRenderer.call("SAVE_SWP", this.inputText);
-    }, 10000);
-  },
-
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
@@ -115,20 +103,30 @@ export default {
         node.setAttribute("target", "_blank");
       }
     });
+
+    // override the ctrl+s key combo
+    document.onkeydown = async (e) => {
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        await this.onSaveFile();
+      }
+    };
   },
   methods: {
-    onOpenFile(file) {
-      const reader = new FileReader();
-      reader.onload = (res) => {
-        this.inputText = res.target.result;
-      };
-      reader.readAsText(file);
+    onUpdate() {
+      window.ipcRenderer.call("MARK_EDITED");
     },
-    onSaveFile() {
-      let blob = new Blob([this.inputText], {
-        type: "text/plain;charset=utf-8",
-      });
-      saveAs(blob, "untitled.md");
+    async onOpenFile() {
+      let data = await window.ipcRenderer.call("OPEN_FILE");
+      if (data !== undefined) {
+        this.inputText = data;
+      }
+    },
+    async onSaveFile() {
+      await window.ipcRenderer.call("SAVE_FILE", this.inputText);
+    },
+    async onSaveAsFile() {
+      await window.ipcRenderer.call("SAVE_AS_FILE", this.inputText);
     },
     onLayoutChange() {
       this.currentLayout = (this.currentLayout + 1) % 3;
@@ -142,7 +140,6 @@ export default {
 
 .cm-editor * {
   font-family: "Fira Mono", monospace;
-  word-wrap: break-word;
 }
 
 .view {

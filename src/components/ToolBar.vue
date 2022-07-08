@@ -1,22 +1,12 @@
 <template>
   <div class="bottom-bar">
     <div class="d-flex align-items-center flex-bar">
-      <input
-        type="file"
-        ref="fileInput"
-        @change="openFile"
-        hidden
-        accept=".md,.txt"
-      />
-      <button
-        type="button"
-        class="btn btn-dark"
-        @click="$refs.fileInput.click()"
-      >
-        Open
-      </button>
+      <button type="button" class="btn btn-dark" @click="openFile">Open</button>
       <button type="button" class="btn btn-dark ms-2" @click="saveFile">
         Save
+      </button>
+      <button type="button" class="btn btn-dark ms-2" @click="saveAsFile">
+        Save As
       </button>
       <button type="button" class="btn btn-dark ms-4" @click="cycleLayout">
         <svg
@@ -71,7 +61,7 @@
 
 <script>
 export default {
-  name: "BottomBarV",
+  name: "ToolBarV",
   props: {
     currentLayout: Number,
   },
@@ -79,11 +69,14 @@ export default {
     cycleLayout() {
       this.$emit("layout-change");
     },
-    openFile(event) {
-      this.$emit("open-file", event.target.files[0]);
+    openFile() {
+      this.$emit("open-file");
     },
     saveFile() {
       this.$emit("save-file");
+    },
+    saveAsFile() {
+      this.$emit("save-as-file");
     },
   },
 };
