@@ -43,21 +43,16 @@ import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
 
 import { marked } from "marked";
-import { saveAs } from "file-saver";
 import DOMPurify from "dompurify";
 import BottomBarV from "./BottomBar.vue";
+
+import { saveAs } from "file-saver";
 
 export default {
   name: "EditorV",
   components: {
     Codemirror,
     BottomBarV,
-  },
-  setup() {
-    const extensions = [markdown(), oneDark];
-    return {
-      extensions,
-    };
   },
   data() {
     return {
@@ -69,6 +64,24 @@ export default {
       renderer: undefined,
     };
   },
+  setup() {
+    const extensions = [markdown(), oneDark];
+    return {
+      extensions,
+    };
+  },
+  async created() {
+    // load text from swp file
+    let swpData = await window.ipcRenderer.call("LOAD_SWP");
+    this.inputText = swpData;
+
+    // backup every 10 seconds
+    setInterval(async () => {
+      // dump text to swp file
+      await window.ipcRenderer.call("SAVE_SWP", this.inputText);
+    }, 10000);
+  },
+
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
@@ -129,6 +142,7 @@ export default {
 
 .cm-editor * {
   font-family: "Fira Mono", monospace;
+  word-wrap: break-word;
 }
 
 .view {
