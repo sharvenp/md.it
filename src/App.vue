@@ -25,6 +25,7 @@ export default {
 html,
 body {
   height: 100%;
+  background-color: rgb(23, 24, 29);
 }
 
 h1,
@@ -51,7 +52,8 @@ code {
   padding: 2px;
   margin: 2px;
   border: 1px solid rgb(139, 139, 139);
-  background-color: rgba(21, 28, 36, 0.315);
+  background-color: rgba(58, 71, 85, 0.315);
+  color: white !important;
   border-radius: 3px;
 }
 
@@ -64,7 +66,7 @@ pre {
 }
 pre > code {
   border: none;
-  background-color: none;
+  background-color: rgba(0, 0, 0, 0);
 }
 
 table,

@@ -30,19 +30,22 @@ async function createWindow() {
   const fs = require("fs");
 
   // helpers
-  const saveFile = (path, data) => {
-    fs.writeFile(path, data, () => {});
+  const saveFile = (filePath, data) => {
+    fs.writeFileSync(filePath, data, () => {});
   };
-  const loadFile = (path, opts) => {
-    return fs.readFileSync(path, opts);
+  const loadFile = (filePath, opts) => {
+    return fs.readFileSync(filePath, opts);
   };
   let lastOpenPath = undefined;
+  let lastFileName = "untitled.md";
 
   // ipcMain handlers
-  ipcMain.handle("MARK_EDITED", () => {
-    let currTitle = win.getTitle();
-    if (currTitle.length > 0 && currTitle.slice(-1) !== "*") {
-      win.setTitle(currTitle + "*");
+  ipcMain.handle("SET_MODIFIED", (event, modified) => {
+    if (modified) {
+      win.setTitle(lastFileName + "*");
+    }
+    if (!modified) {
+      win.setTitle(lastFileName);
     }
   });
 
@@ -56,15 +59,14 @@ async function createWindow() {
     });
     let data = undefined;
     if (!result.canceled && result.filePaths.length > 0) {
-      const path = require("path");
       try {
         data = loadFile(result.filePaths[0], {
           encoding: "utf8",
           flag: "r",
         });
         lastOpenPath = result.filePaths[0];
-        let fn = path.basename(result.filePaths[0]);
-        win.setTitle(fn);
+        lastFileName = path.basename(result.filePaths[0]);
+        win.setTitle(lastFileName);
       } catch {
         // do nothing
       }
@@ -72,41 +74,39 @@ async function createWindow() {
     return data;
   });
 
-  const saveAsHandler = async (event, data) => {
-    let savePath = await dialog.showSaveDialogSync(null, {
-      showHiddenFiles: false,
-      filters: [{ name: "Markdown", extensions: ["md", "txt"] }],
-    });
-    if (savePath) {
-      const path = require("path");
-      try {
-        saveFile(savePath, data);
-        lastOpenPath = savePath;
-        let fn = path.basename(savePath);
-        win.setTitle(fn);
-      } catch {
-        // do nothing
-      }
-    }
-  };
-
   ipcMain.handle("SAVE_FILE", async (event, data) => {
     if (lastOpenPath) {
-      const path = require("path");
       try {
         saveFile(lastOpenPath, data);
-        let fn = path.basename(lastOpenPath);
-        win.setTitle(fn);
+        lastFileName = path.basename(lastOpenPath);
+        win.setTitle(lastFileName);
+        return 0;
       } catch {
-        // do nothing
+        return 1;
       }
     } else {
-      // defer the save as handler instead
-      saveAsHandler(event, data);
+      return 2;
     }
   });
 
-  ipcMain.handle("SAVE_AS_FILE", saveAsHandler);
+  ipcMain.handle("SAVE_AS_FILE", async (event, data) => {
+    let result = await dialog.showSaveDialog(null, {
+      showHiddenFiles: false,
+      filters: [{ name: "Markdown", extensions: ["md", "txt"] }],
+    });
+    if (!result.canceled && result.filePath) {
+      try {
+        saveFile(result.filePath, data);
+        lastOpenPath = result.filePath;
+        lastFileName = path.basename(result.filePath);
+        win.setTitle(lastFileName);
+        return 0;
+      } catch (e) {
+        return 1;
+      }
+    }
+    return 2;
+  });
 
   win.removeMenu();
   win.webContents.setWindowOpenHandler(({ url }) => {

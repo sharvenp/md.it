@@ -16,6 +16,7 @@
           :indent-with-tab="true"
           :tab-size="2"
           :extensions="extensions"
+          :disabled="editorLocked"
           @change="onUpdate"
         />
       </div>
@@ -29,6 +30,7 @@
     </div>
     <div class="row">
       <ToolBarV
+        :editorLocked="editorLocked"
         :currentLayout="currentLayout"
         @layout-change="onLayoutChange"
         @open-file="onOpenFile"
@@ -61,6 +63,8 @@ export default {
 *Type something...*
 `,
       currentLayout: 2,
+      editorLocked: false,
+      fileOpened: false,
       renderer: undefined,
     };
   },
@@ -84,6 +88,7 @@ export default {
     },
   },
   mounted() {
+    // override the anchor tag generator to open links in new tab
     this.renderer = new marked.Renderer();
     this.renderer.link = function (href, title, text) {
       return (
@@ -106,27 +111,73 @@ export default {
 
     // override the ctrl+s key combo
     document.onkeydown = async (e) => {
-      if (e.ctrlKey && e.key === "s") {
+      if (e.ctrlKey) {
+        if (e.code === "KeyO") {
+          // open file
+          await this.onOpenFile();
+        } else if (e.code === "KeyS") {
+          if (e.shiftKey) {
+            // save as
+            await this.onSaveAsFile();
+          } else {
+            // save
+            await this.onSaveFile();
+          }
+        } else if (e.code === "Tab") {
+          // focus open button (escape editor focus)
+          document.getElementById("open-button").focus();
+        }
         e.preventDefault();
-        await this.onSaveFile();
       }
     };
   },
   methods: {
     onUpdate() {
-      window.ipcRenderer.call("MARK_EDITED");
-    },
-    async onOpenFile() {
-      let data = await window.ipcRenderer.call("OPEN_FILE");
-      if (data !== undefined) {
-        this.inputText = data;
+      if (this.fileOpened) {
+        this.fileOpened = false;
+        window.ipcRenderer.call("SET_MODIFIED", false);
+      } else {
+        window.ipcRenderer.call("SET_MODIFIED", true);
       }
     },
+    async onOpenFile() {
+      if (this.editorLocked) return;
+
+      this.editorLocked = true;
+      let data = await window.ipcRenderer.call("OPEN_FILE");
+      if (data !== undefined) {
+        this.fileOpened = true;
+        this.inputText = data;
+      }
+      this.editorLocked = false;
+    },
     async onSaveFile() {
-      await window.ipcRenderer.call("SAVE_FILE", this.inputText);
+      if (this.editorLocked) return;
+
+      this.editorLocked = true;
+      let result = await window.ipcRenderer.call("SAVE_FILE", this.inputText);
+      if (result === 2) {
+        // there is no existing file to save
+        // so we defer to save-as file instead
+        this.editorLocked = false;
+        await this.onSaveAsFile();
+      } else if (result === 0) {
+        window.ipcRenderer.call("SET_MODIFIED", false);
+      }
+      this.editorLocked = false;
     },
     async onSaveAsFile() {
-      await window.ipcRenderer.call("SAVE_AS_FILE", this.inputText);
+      if (this.editorLocked) return;
+
+      this.editorLocked = true;
+      let result = await window.ipcRenderer.call(
+        "SAVE_AS_FILE",
+        this.inputText
+      );
+      if (result === 0) {
+        window.ipcRenderer.call("SET_MODIFIED", false);
+      }
+      this.editorLocked = false;
     },
     onLayoutChange() {
       this.currentLayout = (this.currentLayout + 1) % 3;
@@ -140,6 +191,7 @@ export default {
 
 .cm-editor * {
   font-family: "Fira Mono", monospace;
+  word-wrap: break-word;
 }
 
 .view {
@@ -164,7 +216,8 @@ export default {
 }
 
 .column {
-  height: 94vh;
+  /* adjust height for the bottom bar */
+  height: calc(100vh - 67px);
   overflow: auto;
 }
 </style>

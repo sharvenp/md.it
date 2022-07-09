@@ -1,14 +1,39 @@
 <template>
   <div class="bottom-bar">
     <div class="d-flex align-items-center flex-bar">
-      <button type="button" class="btn btn-dark" @click="openFile">Open</button>
-      <button type="button" class="btn btn-dark ms-2" @click="saveFile">
+      <button
+        id="open-button"
+        type="button"
+        :disabled="editorLocked"
+        class="btn btn-dark"
+        @click="openFile"
+      >
+        Open
+      </button>
+      <button
+        id="save-button"
+        type="button"
+        :disabled="editorLocked"
+        class="btn btn-dark ms-2"
+        @click="saveFile"
+      >
         Save
       </button>
-      <button type="button" class="btn btn-dark ms-2" @click="saveAsFile">
+      <button
+        id="save-as-button"
+        type="button"
+        :disabled="editorLocked"
+        class="btn btn-dark ms-2"
+        @click="saveAsFile"
+      >
         Save As
       </button>
-      <button type="button" class="btn btn-dark ms-4" @click="cycleLayout">
+      <button
+        type="button"
+        id="layout-button"
+        class="btn btn-dark ms-4"
+        @click="cycleLayout"
+      >
         <svg
           v-if="currentLayout === 0"
           xmlns="http://www.w3.org/2000/svg"
@@ -64,18 +89,22 @@ export default {
   name: "ToolBarV",
   props: {
     currentLayout: Number,
+    editorLocked: Boolean,
   },
   methods: {
     cycleLayout() {
       this.$emit("layout-change");
     },
     openFile() {
+      if (this.editorLocked) return;
       this.$emit("open-file");
     },
     saveFile() {
+      if (this.editorLocked) return;
       this.$emit("save-file");
     },
     saveAsFile() {
+      if (this.editorLocked) return;
       this.$emit("save-as-file");
     },
   },
@@ -90,7 +119,7 @@ export default {
 }
 
 .flex-bar {
-  height: 3.7vh;
+  height: 45px;
 }
 
 .logo {
