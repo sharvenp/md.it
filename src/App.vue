@@ -66,7 +66,7 @@ pre {
 }
 pre > code {
   border: none;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
 }
 
 table,
@@ -88,5 +88,26 @@ table {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar {
+  width: 20px;
+  background-color: rgb(40, 44, 52);
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(78, 81, 97, 0.2);
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(128, 128, 128, 0.2);
 }
 </style>

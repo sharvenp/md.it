@@ -12,6 +12,7 @@
             width: '100%',
             height: '100%',
           }"
+          placeholder="Type something..."
           :autofocus="true"
           :indent-with-tab="true"
           :tab-size="2"
@@ -58,9 +59,64 @@ export default {
   },
   data() {
     return {
-      inputText: `# New document
+      //       inputText: `# New document
 
-*Type something...*
+      // *Type something...*
+      // `,
+      inputText: `# Buggy
+
+## Pitch
+
+Web app where users can upload debugging problems in some language and other users try to debug it by highlighting the problematic lines.
+
+## Details
+
+- Main page has list of all problems
+
+  - Sort by trending, top, new
+  - User cannot solve the same problem again
+
+- Adding a new problem
+
+  - Text editor - paste code here
+  - Select language
+  - Highlight problematic lines
+    - Add optional comments
+  - What about multi-file programs (like Java classes and C modules)
+    - Put them all in the same file
+    - Max line count of 1000
+
+- Solving a problem
+
+  - User can highlight lines and submit
+  - App gives them feedback on right/wrong
+  - Keeps track of attempts
+  - User can choose to show the answer
+  - User can upvote/downvote posts (can only do this after solving it)
+  - User can report post if answer seems incorrect
+    - OC might receive warning/ban after admin reviews it
+
+- Profile view
+  - Users can see other user's profiles
+    - Username
+    - Bio
+    - Avatar
+    - List of solved problems
+
+## Types of debugging problems
+
+- Runtime error
+
+- Wrong output
+
+  - Defined input/output cases
+  - Expected output
+  - Actual output
+
+- Race conditions
+- Memory leaks
+- Security vulnerabilities
+
 `,
       currentLayout: 2,
       editorLocked: false,
@@ -111,22 +167,30 @@ export default {
 
     // override the ctrl+s key combo
     document.onkeydown = async (e) => {
+      let prevent = false;
       if (e.ctrlKey) {
         if (e.code === "KeyO") {
           // open file
           await this.onOpenFile();
+          prevent = true;
         } else if (e.code === "KeyS") {
           if (e.shiftKey) {
             // save as
             await this.onSaveAsFile();
+            prevent = true;
           } else {
             // save
             await this.onSaveFile();
+            prevent = true;
           }
         } else if (e.code === "Tab") {
           // focus open button (escape editor focus)
           document.getElementById("open-button").focus();
+          prevent = true;
         }
+      }
+
+      if (prevent) {
         e.preventDefault();
       }
     };
@@ -191,11 +255,11 @@ export default {
 
 .cm-editor * {
   font-family: "Fira Mono", monospace;
-  word-wrap: break-word;
 }
 
 .view {
   margin: 0 12px 0 12px;
+  background-color: rgb(40, 44, 52);
 }
 
 .divide-right {
@@ -210,7 +274,7 @@ export default {
   height: auto;
   min-height: 100%;
   padding: 20px 20px 40px 20px;
-  background-color: rgb(38, 43, 51);
+  /* background-color: rgb(40, 44, 52); */
   color: white;
   text-align: left;
 }
