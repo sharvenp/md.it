@@ -17,6 +17,8 @@ In addition, the editor supports a simple set of commands:
 
 ("Modifier" is the modifier key in your platform - for example this is the "Ctrl" key in Windows)
 
+Head over to the [releases](https://github.com/sharvenp/md.it/releases) page for download options.
+
 ----
 
 Here is what this README file looks like in md.it:
