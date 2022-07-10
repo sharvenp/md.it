@@ -97,6 +97,10 @@ table {
   background-color: rgb(40, 44, 52);
 }
 
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0);
+}
+
 ::-webkit-scrollbar-track {
   background-color: transparent;
 }

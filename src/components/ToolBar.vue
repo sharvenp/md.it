@@ -124,8 +124,8 @@
         class="logo ms-auto me-2 text-decoration-none noselect"
         href="https://github.com/sharvenp/md.it"
         target="_blank"
-        >md.it</a
-      >
+        ><img width="40" class="p-1 md-it-icon" src="../../public/icon.png"
+      /></a>
     </div>
   </div>
 </template>
@@ -170,5 +170,11 @@ export default {
 
 .logo {
   color: rgb(189, 185, 185);
+  border: solid 1px rgb(82, 82, 82);
+  border-radius: 5px;
+}
+
+.logo :hover {
+  background-color: rgba(68, 68, 68, 0.247);
 }
 </style>

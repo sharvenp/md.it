@@ -1,11 +1,7 @@
 <template>
   <div class="view">
     <div class="row">
-      <div
-        v-if="showLeftPane"
-        class="col p-0 column divide-right"
-        id="input-column"
-      >
+      <div v-if="showLeftPane" class="col p-0 column divide-right">
         <codemirror
           v-model="inputText"
           :style="{
@@ -21,11 +17,7 @@
           @change="onUpdate"
         />
       </div>
-      <div
-        v-if="showRightPane"
-        class="col p-0 column divide-left"
-        ref="preview"
-      >
+      <div v-if="showRightPane" class="col p-0 column divide-left">
         <div v-html="compiledMarkdown" class="preview"></div>
       </div>
     </div>
