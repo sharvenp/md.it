@@ -4,33 +4,79 @@
       <button
         id="open-button"
         type="button"
+        title="Open"
         :disabled="editorLocked"
         class="btn btn-dark"
         @click="openFile"
       >
-        Open
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+          />
+        </svg>
       </button>
       <button
         id="save-button"
         type="button"
+        title="Save"
         :disabled="editorLocked"
         class="btn btn-dark ms-2"
         @click="saveFile"
       >
-        Save
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+          />
+        </svg>
       </button>
       <button
         id="save-as-button"
         type="button"
+        title="Save As"
         :disabled="editorLocked"
         class="btn btn-dark ms-2"
         @click="saveAsFile"
       >
-        Save As
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M17 16v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-7a2 2 0 012-2h2m3-4H9a2 2 0 00-2 2v7a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-1m-1 4l-3 3m0 0l-3-3m3 3V3"
+          />
+        </svg>
       </button>
       <button
         type="button"
         id="layout-button"
+        title="Toggle Layout"
         class="btn btn-dark ms-4"
         @click="cycleLayout"
       >

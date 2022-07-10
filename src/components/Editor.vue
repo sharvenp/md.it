@@ -44,6 +44,8 @@
 
 <script>
 import { Codemirror } from "vue-codemirror";
+import { EditorView, keymap } from "@codemirror/view";
+import { EditorSelection, Transaction, Text } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
 
@@ -59,65 +61,7 @@ export default {
   },
   data() {
     return {
-      //       inputText: `# New document
-
-      // *Type something...*
-      // `,
-      inputText: `# Buggy
-
-## Pitch
-
-Web app where users can upload debugging problems in some language and other users try to debug it by highlighting the problematic lines.
-
-## Details
-
-- Main page has list of all problems
-
-  - Sort by trending, top, new
-  - User cannot solve the same problem again
-
-- Adding a new problem
-
-  - Text editor - paste code here
-  - Select language
-  - Highlight problematic lines
-    - Add optional comments
-  - What about multi-file programs (like Java classes and C modules)
-    - Put them all in the same file
-    - Max line count of 1000
-
-- Solving a problem
-
-  - User can highlight lines and submit
-  - App gives them feedback on right/wrong
-  - Keeps track of attempts
-  - User can choose to show the answer
-  - User can upvote/downvote posts (can only do this after solving it)
-  - User can report post if answer seems incorrect
-    - OC might receive warning/ban after admin reviews it
-
-- Profile view
-  - Users can see other user's profiles
-    - Username
-    - Bio
-    - Avatar
-    - List of solved problems
-
-## Types of debugging problems
-
-- Runtime error
-
-- Wrong output
-
-  - Defined input/output cases
-  - Expected output
-  - Actual output
-
-- Race conditions
-- Memory leaks
-- Security vulnerabilities
-
-`,
+      inputText: "",
       currentLayout: 2,
       editorLocked: false,
       fileOpened: false,
@@ -125,7 +69,89 @@ Web app where users can upload debugging problems in some language and other use
     };
   },
   setup() {
-    const extensions = [markdown(), oneDark];
+    let createCustomKeyMod = (mod, key, insertChar) => {
+      let handler = ({ state, dispatch }) => {
+        const changes = state.changeByRange((range) => {
+          const isAppliedBefore =
+            state.sliceDoc(range.from - insertChar.length, range.from) ===
+            insertChar;
+          const isAppliedAfter =
+            state.sliceDoc(range.to, range.to + insertChar.length) ===
+            insertChar;
+          const changes = [];
+
+          changes.push(
+            isAppliedBefore
+              ? {
+                  from: range.from - insertChar.length,
+                  to: range.from,
+                  insert: Text.of([""]),
+                }
+              : {
+                  from: range.from,
+                  insert: Text.of([insertChar]),
+                }
+          );
+
+          changes.push(
+            isAppliedAfter
+              ? {
+                  from: range.to,
+                  to: range.to + insertChar.length,
+                  insert: Text.of([""]),
+                }
+              : {
+                  from: range.to,
+                  insert: Text.of([insertChar]),
+                }
+          );
+
+          const extendBefore = isAppliedBefore
+            ? -insertChar.length
+            : insertChar.length;
+          const extendAfter = isAppliedAfter
+            ? -insertChar.length
+            : insertChar.length;
+
+          return {
+            changes,
+            range: EditorSelection.range(
+              range.from + extendBefore,
+              range.to + extendAfter
+            ),
+          };
+        });
+        dispatch(
+          state.update(changes, {
+            scrollIntoView: true,
+            annotations: Transaction.userEvent.of("input"),
+          })
+        );
+        return true;
+      };
+      return [
+        {
+          key: `${mod}-${key.toUpperCase()}`,
+          run: handler,
+        },
+        {
+          key: `${mod}-${key.toLowerCase()}`,
+          run: handler,
+        },
+      ];
+    };
+
+    const extensions = [
+      markdown(),
+      oneDark,
+      EditorView.lineWrapping,
+      keymap.of([
+        ...createCustomKeyMod("Mod", "b", "**"),
+        ...createCustomKeyMod("Mod", "e", "_"),
+        ...createCustomKeyMod("Mod", "k", "`"),
+        ...createCustomKeyMod("Mod-Shift", "d", "~~"),
+      ]),
+    ];
     return {
       extensions,
     };
@@ -259,7 +285,6 @@ Web app where users can upload debugging problems in some language and other use
 
 .view {
   margin: 0 12px 0 12px;
-  background-color: rgb(40, 44, 52);
 }
 
 .divide-right {
@@ -274,7 +299,6 @@ Web app where users can upload debugging problems in some language and other use
   height: auto;
   min-height: 100%;
   padding: 20px 20px 40px 20px;
-  /* background-color: rgb(40, 44, 52); */
   color: white;
   text-align: left;
 }
