@@ -1,5 +1,7 @@
 "use strict";
 
+/* global __static */
+
 import { app, protocol, shell, dialog, BrowserWindow, ipcMain } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import * as path from "path";
@@ -23,6 +25,7 @@ async function createWindow() {
       nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
       preload: path.join(__dirname, "preload.js"),
+      icon: path.join(__static, "icon.png"),
     },
   });
 
