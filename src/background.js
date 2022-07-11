@@ -3,6 +3,7 @@
 /* global __static */
 
 import { app, protocol, shell, dialog, BrowserWindow, ipcMain } from "electron";
+import windowStateKeeper from "electron-window-state";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import * as path from "path";
 
@@ -15,9 +16,15 @@ protocol.registerSchemesAsPrivileged([
 
 async function createWindow() {
   // Create the browser window.
+  let mainWindowState = windowStateKeeper({
+    defaultWidth: 1200,
+    defaultHeight: 800,
+  });
   const win = new BrowserWindow({
-    width: 1600,
-    height: 1000,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     title: "md.it",
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
@@ -28,6 +35,8 @@ async function createWindow() {
       icon: path.join(__static, "icon.png"),
     },
   });
+
+  mainWindowState.manage(win);
 
   const fs = require("fs");
 
