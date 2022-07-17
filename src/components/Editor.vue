@@ -217,9 +217,9 @@ export default {
     onUpdate() {
       if (this.fileOpened) {
         this.fileOpened = false;
-        window.ipcRenderer.call("SET_MODIFIED", false);
+        window.ipcRenderer.call("SET_MODIFIED", false, this.inputText);
       } else {
-        window.ipcRenderer.call("SET_MODIFIED", true);
+        window.ipcRenderer.call("SET_MODIFIED", true, this.inputText);
       }
     },
     async onOpenFile() {

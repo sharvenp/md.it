@@ -26,3 +26,5 @@ pnpm-debug.log*
 /dist_electron
 
 /build
+
+backlog.md
