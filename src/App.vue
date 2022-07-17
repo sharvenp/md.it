@@ -70,6 +70,17 @@ pre > code {
   background-color: transparent;
 }
 
+blockquote {
+  background-color: transparent;
+  margin: 0;
+  width: 100%;
+}
+blockquote > p {
+  border-left: solid rgba(255, 255, 255, 0.4) 2px;
+  padding-left: 15px;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
 table,
 th,
 td {

@@ -121,21 +121,32 @@
         </svg>
       </button>
       <a
-        class="logo ms-auto me-2 text-decoration-none noselect"
+        class="logo ms-auto text-decoration-none noselect"
         href="https://github.com/sharvenp/md.it"
         target="_blank"
-        ><img width="40" class="p-1 md-it-icon" src="../../public/icon.png"
-      /></a>
+      >
+        <div class="d-flex">
+          <img width="40" class="p-1" src="../../public/icon.png" />
+          <p class="p-auto m-2">{{ appVersion }}</p>
+        </div></a
+      >
     </div>
   </div>
 </template>
 
 <script>
+import { version } from "../../package";
+
 export default {
   name: "ToolBarV",
   props: {
     currentLayout: Number,
     editorLocked: Boolean,
+  },
+  data() {
+    return {
+      appVersion: version,
+    };
   },
   methods: {
     cycleLayout() {
@@ -172,9 +183,5 @@ export default {
   color: rgb(189, 185, 185);
   border: solid 1px rgb(82, 82, 82);
   border-radius: 5px;
-}
-
-.logo :hover {
-  background-color: rgba(68, 68, 68, 0.247);
 }
 </style>
