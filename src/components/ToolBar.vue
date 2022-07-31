@@ -135,7 +135,7 @@
 </template>
 
 <script>
-import { version } from "../../package";
+import appInfo from "../../package";
 
 export default {
   name: "ToolBarV",
@@ -145,7 +145,7 @@ export default {
   },
   data() {
     return {
-      appVersion: version,
+      appVersion: appInfo.version,
     };
   },
   methods: {

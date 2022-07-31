@@ -26,6 +26,7 @@
     "dompurify": "^2.3.8",
     "electron-window-state": "^5.0.3",
     "marked": "^4.0.17",
+    "splitpanes": "^3.1.1",
     "vue": "^3.2.13",
     "vue-codemirror": "^6.0.0"
   },

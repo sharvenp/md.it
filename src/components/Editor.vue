@@ -1,25 +1,31 @@
 <template>
   <div class="view">
     <div class="row">
-      <div v-if="showLeftPane" class="col p-0 column divide-right">
-        <codemirror
-          v-model="inputText"
-          :style="{
-            width: '100%',
-            height: '100%',
-          }"
-          placeholder="Type something..."
-          :autofocus="true"
-          :indent-with-tab="true"
-          :tab-size="2"
-          :extensions="extensions"
-          :disabled="editorLocked"
-          @change="onUpdate"
-        />
-      </div>
-      <div v-if="showRightPane" class="col p-0 column divide-left">
-        <div v-html="compiledMarkdown" class="preview"></div>
-      </div>
+      <splitpanes class="default-theme">
+        <pane v-if="showLeftPane">
+          <div id="editor-col" class="p-0 column">
+            <codemirror
+              v-model="inputText"
+              :style="{
+                width: '100%',
+                height: '100%',
+              }"
+              placeholder="Type something..."
+              :autofocus="true"
+              :indent-with-tab="true"
+              :tab-size="2"
+              :extensions="extensions"
+              :disabled="editorLocked"
+              @change="onUpdate"
+            />
+          </div>
+        </pane>
+        <pane v-if="showRightPane">
+          <div id="view-col" class="p-0 column">
+            <div v-html="compiledMarkdown" class="preview"></div>
+          </div>
+        </pane>
+      </splitpanes>
     </div>
     <div class="row">
       <ToolBarV
@@ -41,6 +47,8 @@ import { EditorSelection, Transaction, Text } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
 
+import { Splitpanes, Pane } from "splitpanes";
+
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import ToolBarV from "./ToolBar.vue";
@@ -50,6 +58,8 @@ export default {
   components: {
     Codemirror,
     ToolBarV,
+    Splitpanes,
+    Pane,
   },
   data() {
     return {
@@ -279,13 +289,6 @@ export default {
   margin: 0 12px 0 12px;
 }
 
-.divide-right {
-  border-right: rgb(48, 54, 61) 2px solid;
-}
-.divide-left {
-  border-left: rgb(48, 54, 61) 2px solid;
-}
-
 .preview {
   width: 100%;
   height: auto;
@@ -293,11 +296,18 @@ export default {
   padding: 20px 20px 40px 20px;
   color: white;
   text-align: left;
+  background-color: rgb(40, 44, 52) !important;
 }
 
 .column {
   /* adjust height for the bottom bar */
   height: calc(100vh - 67px);
   overflow: auto;
+}
+
+.splitpanes--vertical > .splitpanes__splitter {
+  border: none !important;
+  width: 10px !important;
+  background-color: rgb(48, 54, 61) !important;
 }
 </style>
