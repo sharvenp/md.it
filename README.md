@@ -23,4 +23,4 @@ Head over to the [releases](https://github.com/sharvenp/md.it/releases) page for
 
 Here is an example markdown file in md.it:
 
-![](readme/demo-pic.PNG)
+<img src="https://raw.githubusercontent.com/sharvenp/md.it/main/readme/demo-pic.PNG"/>
