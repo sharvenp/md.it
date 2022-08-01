@@ -21,8 +21,6 @@ Head over to the [releases](https://github.com/sharvenp/md.it/releases) page for
 
 ----
 
-Here is what this README file looks like in md.it:
+Here is an example markdown file in md.it:
 
-<p align="center">
-  <img width="1000" src="https://github.com/sharvenp/md.it/blob/main/readme/demo-pic.PNG?raw=true">
-</p>
+![](readme/demo-pic.PNG)
