@@ -1,7 +1,7 @@
 {
   "name": "md.it",
   "author": "sharvenp <sharven.dhanasekar@mail.utoronto.ca>",
-  "version": "1.1.0",
+  "version": "1.2.0-a",
   "description": "A dead simple markdown editor",
   "license": "MIT",
   "scripts": {

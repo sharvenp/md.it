@@ -48,10 +48,29 @@ async function createWindow() {
   const loadFile = (filePath, opts) => {
     return fs.readFileSync(filePath, opts);
   };
+
   let lastOpenPath = undefined;
   let lastFileName = "untitled.md";
   let lastModified = false;
   let dataBackup = "";
+
+  if (process.argv.length >= 2) {
+    lastOpenPath = process.argv[1];
+    lastFileName = path.basename(lastOpenPath);
+    try {
+      dataBackup = loadFile(lastOpenPath, {
+        encoding: "utf8",
+        flag: "r",
+      });
+      win.setTitle(lastFileName);
+    } catch {
+      // do nothing
+    }
+  }
+
+  ipcMain.handle("GET_OPEN_DATA", () => {
+    return [dataBackup, lastOpenPath];
+  });
 
   // ipcMain handlers
   ipcMain.handle("SET_MODIFIED", (event, modified, data = undefined) => {

@@ -16,6 +16,13 @@ module.exports = defineConfig({
           allowToChangeInstallationDirectory: true,
           license: "LICENSE",
         },
+        fileAssociations: [
+          {
+            ext: ["txt", "md"],
+            name: "Markdown File",
+            role: "Editor",
+          },
+        ],
       },
     },
   },

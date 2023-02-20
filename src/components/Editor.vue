@@ -158,6 +158,15 @@ export default {
       extensions,
     };
   },
+  async created() {
+    // pull data if there is any
+    // this is used for cases where the user opens file with the "Open with" context menu option
+    let data = await window.ipcRenderer.call("GET_OPEN_DATA");
+    if (data[1] !== undefined) {
+      this.fileOpened = true;
+      this.inputText = data[0];
+    }
+  },
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
