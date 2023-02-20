@@ -68,11 +68,11 @@ async function createWindow() {
     }
   }
 
+  // ipcMain handlers
   ipcMain.handle("GET_OPEN_DATA", () => {
     return [dataBackup, lastOpenPath];
   });
 
-  // ipcMain handlers
   ipcMain.handle("SET_MODIFIED", (event, modified, data = undefined) => {
     if (modified) {
       win.setTitle(lastFileName + "*");

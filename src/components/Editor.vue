@@ -158,15 +158,6 @@ export default {
       extensions,
     };
   },
-  async created() {
-    // pull data if there is any
-    // this is used for cases where the user opens file with the "Open with" context menu option
-    let data = await window.ipcRenderer.call("GET_OPEN_DATA");
-    if (data[1] !== undefined) {
-      this.fileOpened = true;
-      this.inputText = data[0];
-    }
-  },
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
@@ -179,6 +170,16 @@ export default {
     showRightPane() {
       return this.currentLayout === 0 || this.currentLayout === 2;
     },
+  },
+  async beforeMount() {
+    // pull data if there is any
+    // this is used for cases where the user opens file with the "Open with" context menu option
+    let data = await window.ipcRenderer.call("GET_OPEN_DATA");
+    if (data[1] !== undefined) {
+      this.inputText = data[0];
+      this.fileOpened = false;
+      window.ipcRenderer.call("SET_MODIFIED", false, this.inputText);
+    }
   },
   mounted() {
     // override the anchor tag generator to open links in new tab

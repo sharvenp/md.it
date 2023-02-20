@@ -4,6 +4,7 @@ import { contextBridge, ipcRenderer } from "electron";
 contextBridge.exposeInMainWorld("ipcRenderer", {
   call: (channel, ...args) => {
     let validChannels = [
+      "GET_OPEN_DATA",
       "SET_MODIFIED",
       "OPEN_FILE",
       "SAVE_FILE",
