@@ -4,7 +4,7 @@
   <img width="300" height="300" src="https://github.com/sharvenp/md.it/blob/main/public/icon.png?raw=true">
 </p>
 
-A dead-simple desktop markdown editor developed using [Vue.js](https://vuejs.org/) and [Electron](https://www.electronjs.org/).
+A dead-simple desktop markdown and text editor developed using [Vue.js](https://vuejs.org/) and [Electron](https://www.electronjs.org/).
 
 The editor live previews the markdown in side-by-side view, and offers the basic functions of any text editor such as opening files, saving files, and saving files as a new file.
 
