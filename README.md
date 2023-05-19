@@ -14,6 +14,7 @@ In addition, the editor supports a simple set of commands:
 - "Modifier + e" to _italicize/emphasize_
 - "Modfiier + k" to create `in-line code block`
 - "Modifier + Shift + d" to ~~strikethrough~~ 
+- "Ctrl + f" to find (and replace)
 
 ("Modifier" is the modifier key in your platform - for example this is the "Ctrl" key in Windows)
 
