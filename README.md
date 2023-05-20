@@ -10,13 +10,11 @@ The editor live previews the markdown in side-by-side view, and offers the basic
 
 In addition, the editor supports a simple set of commands:
 
-- "Modfier + b" to **bold**
-- "Modifier + e" to _italicize/emphasize_
-- "Modfiier + k" to create `in-line code block`
-- "Modifier + Shift + d" to ~~strikethrough~~ 
-- "Ctrl + f" to find (and replace)
-
-("Modifier" is the modifier key in your platform - for example this is the "Ctrl" key in Windows)
+- <kbd>Ctrl</kbd> + <kbd>b</kbd> to **bold**
+- <kbd>Ctrl</kbd> + <kbd>e</kbd> to _italicize/emphasize_
+- <kbd>Ctrl</kbd> + <kbd>k</kbd> to create `in-line code block`
+- <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>d</kbd> to ~~strikethrough~~ 
+- <kbd>Ctrl</kbd> + <kbd>f</kbd> to find (and replace)
 
 Head over to the [releases](https://github.com/sharvenp/md.it/releases) page for download options.
 
