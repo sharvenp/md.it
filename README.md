@@ -15,6 +15,7 @@ In addition, the editor supports a simple set of commands:
 - <kbd>Ctrl</kbd> + <kbd>k</kbd> to create `in-line code block`
 - <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>d</kbd> to ~~strikethrough~~ 
 - <kbd>Ctrl</kbd> + <kbd>f</kbd> to find (and replace)
+- <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>Click</kbd> to create multiple cursors
 
 Head over to the [releases](https://github.com/sharvenp/md.it/releases) page for download options.
 
