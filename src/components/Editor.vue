@@ -31,6 +31,8 @@
       <ToolBarV
         :editorLocked="editorLocked"
         :currentLayout="currentLayout"
+        :spellCheck="spellCheck"
+        @toggle-spell-check="onSpellCheckToggle"
         @layout-change="onLayoutChange"
         @open-file="onOpenFile"
         @save-file="onSaveFile"
@@ -65,6 +67,7 @@ export default {
     return {
       inputText: "",
       currentLayout: 2,
+      spellCheck: false,
       editorLocked: false,
       fileOpened: false,
       renderer: undefined,
@@ -180,8 +183,15 @@ export default {
       this.fileOpened = false;
       window.ipcRenderer.call("SET_MODIFIED", false, this.inputText);
     }
+
+    let settings = await window.ipcRenderer.call("GET_PREFERENCES");
+    this.currentLayout = settings.currentLayout ?? 2;
+    this.spellCheck = settings.spellCheck ?? false;
   },
   mounted() {
+    // enable spellcheck
+    this.updateSpellCheck();
+
     // override the anchor tag generator to open links in new tab
     this.renderer = new marked.Renderer();
     this.renderer.link = function (href, title, text) {
@@ -233,6 +243,11 @@ export default {
       }
     };
   },
+  updated() {
+    this.$nextTick(() => {
+      this.updateSpellCheck();
+    });
+  },
   methods: {
     onUpdate() {
       if (this.fileOpened) {
@@ -283,6 +298,24 @@ export default {
     },
     onLayoutChange() {
       this.currentLayout = (this.currentLayout + 1) % 3;
+      this.updatePreferences();
+    },
+    onSpellCheckToggle() {
+      this.spellCheck = !this.spellCheck;
+      this.updateSpellCheck();
+      this.updatePreferences();
+    },
+    updateSpellCheck() {
+      let el = document.getElementsByClassName("cm-content")[0];
+      if (el) {
+        el.spellcheck = this.spellCheck;
+      }
+    },
+    updatePreferences() {
+      window.ipcRenderer.call("SET_PREFERENCES", {
+        currentLayout: this.currentLayout,
+        spellCheck: this.spellCheck,
+      });
     },
   },
 };

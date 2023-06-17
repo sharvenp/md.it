@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
       "OPEN_FILE",
       "SAVE_FILE",
       "SAVE_AS_FILE",
+      "GET_PREFERENCES",
+      "SET_PREFERENCES",
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args);

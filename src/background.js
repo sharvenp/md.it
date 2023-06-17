@@ -2,8 +2,18 @@
 
 /* global __static */
 
-import { app, protocol, shell, dialog, BrowserWindow, ipcMain } from "electron";
+import {
+  app,
+  protocol,
+  shell,
+  dialog,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  MenuItem,
+} from "electron";
 import windowStateKeeper from "electron-window-state";
+import storage from "electron-json-storage";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import * as path from "path";
 // import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
@@ -27,6 +37,7 @@ async function createWindow() {
     width: mainWindowState.width,
     height: mainWindowState.height,
     title: "md.it",
+    backgroundColor: "#17181d",
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -34,10 +45,57 @@ async function createWindow() {
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
       preload: path.join(__dirname, "preload.js"),
       icon: path.join(__static, "icon.png"),
+      spellcheck: true,
     },
   });
 
   mainWindowState.manage(win);
+
+  win.webContents.session.setSpellCheckerLanguages(["en-US"]);
+  win.webContents.on("context-menu", (event, params) => {
+    const menu = new Menu();
+
+    // Add each spelling suggestion
+    for (const suggestion of params.dictionarySuggestions) {
+      menu.append(
+        new MenuItem({
+          label: suggestion,
+          click: () => win.webContents.replaceMisspelling(suggestion),
+        })
+      );
+    }
+
+    // Allow users to add the misspelled word to the dictionary
+    if (params.misspelledWord) {
+      menu.append(
+        new MenuItem({
+          label: "Add to dictionary",
+          click: () =>
+            win.webContents.session.addWordToSpellCheckerDictionary(
+              params.misspelledWord
+            ),
+        })
+      );
+    }
+
+    if (params.dictionarySuggestions.length > 0) {
+      menu.popup();
+    }
+  });
+
+  // remove menu bar
+  win.removeMenu();
+
+  // load user settings from previous session
+  storage.setDataPath(app.getPath("userData"));
+  let preferences = storage.getSync("user-preferences");
+  if (preferences === undefined || Object.keys(preferences).length === 0) {
+    preferences = {
+      currentLayout: 2,
+      spellCheck: false,
+    };
+    storage.set("user-preferences", preferences);
+  }
 
   const fs = require("fs");
 
@@ -148,7 +206,14 @@ async function createWindow() {
   ipcMain.handle("SAVE_FILE", saveFileHandler);
   ipcMain.handle("SAVE_AS_FILE", saveAsFileHandler);
 
-  win.removeMenu();
+  ipcMain.handle("GET_PREFERENCES", () => {
+    return preferences;
+  });
+
+  ipcMain.handle("SET_PREFERENCES", (_, newPreferences) => {
+    preferences = newPreferences;
+    storage.set("user-preferences", preferences);
+  });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
