@@ -24,3 +24,7 @@ Head over to the [releases](https://github.com/sharvenp/md.it/releases) page for
 Here is an example markdown file in md.it:
 
 <img src="https://raw.githubusercontent.com/sharvenp/md.it/main/readme/demo-pic.PNG"/>
+
+# Acknowledgements
+
+Thanks to [@life-comes-forth](https://github.com/life-comes-forth) for QA testing md.it.
