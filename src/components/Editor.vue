@@ -51,7 +51,11 @@ import { oneDark } from "@codemirror/theme-one-dark";
 
 import { Splitpanes, Pane } from "splitpanes";
 
-import { marked } from "marked";
+//import { marked } from "marked";
+import MarkdownIt from 'markdown-it';
+import MarkdownitSup from 'markdown-it-sup';
+import MarkdownitSub from 'markdown-it-sub';
+import MarkdownitEmoji from 'markdown-it-emoji';
 import DOMPurify from "dompurify";
 import ToolBarV from "./ToolBar.vue";
 
@@ -71,6 +75,7 @@ export default {
       editorLocked: false,
       fileOpened: false,
       renderer: undefined,
+      md: undefined
     };
   },
   setup() {
@@ -164,7 +169,8 @@ export default {
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
-        marked(this.inputText, { renderer: this.renderer })
+        //marked(processedText, { renderer: this.renderer })
+        this.md?.render(this.preProcess(this.inputText)) ?? ""
       );
     },
     showLeftPane() {
@@ -193,18 +199,24 @@ export default {
     this.updateSpellCheck();
 
     // override the anchor tag generator to open links in new tab
-    this.renderer = new marked.Renderer();
-    this.renderer.link = function (href, title, text) {
-      return (
-        '<a target="_blank" href="' +
-        href +
-        '" title="' +
-        title +
-        '">' +
-        text +
-        "</a>"
-      );
-    };
+    // this.renderer = new marked.Renderer();
+    // this.renderer.link = function (href, title, text) {
+    //   return (
+    //     '<a target="_blank" href="' +
+    //     href +
+    //     '" title="' +
+    //     title +
+    //     '">' +
+    //     text +
+    //     "</a>"
+    //   );
+    // };
+    this.md = new MarkdownIt({
+      linkify: true,
+    })
+    .use(MarkdownitSup)
+    .use(MarkdownitSub)
+    .use(MarkdownitEmoji);
 
     // add hook to override target in anchor tags
     DOMPurify.addHook("afterSanitizeAttributes", function (node) {
@@ -249,6 +261,12 @@ export default {
     });
   },
   methods: {
+    preProcess(text) {
+      // pre-process the text before rendering
+
+      // nothing for now
+      return text;
+    },
     onUpdate() {
       if (this.fileOpened) {
         this.fileOpened = false;
