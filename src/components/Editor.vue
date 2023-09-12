@@ -170,7 +170,7 @@ export default {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
         //marked(processedText, { renderer: this.renderer })
-        this.md?.render(this.inputText) ?? ""
+        this.md?.render(this.preProcess(this.inputText)) ?? ""
       );
     },
     showLeftPane() {
@@ -261,6 +261,12 @@ export default {
     });
   },
   methods: {
+    preProcess(text) {
+      // pre-process the text before rendering
+
+      // nothing for now
+      return text;
+    },
     onUpdate() {
       if (this.fileOpened) {
         this.fileOpened = false;
