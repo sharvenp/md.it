@@ -52,7 +52,7 @@ async function createWindow() {
   mainWindowState.manage(win);
 
   win.webContents.session.setSpellCheckerLanguages(["en-US"]);
-  win.webContents.on("context-menu", (event, params) => {
+  win.webContents.on("context-menu", (_, params) => {
     const menu = new Menu();
 
     // Add each spelling suggestion
@@ -131,7 +131,7 @@ async function createWindow() {
     return [dataBackup, lastOpenPath];
   });
 
-  ipcMain.handle("SET_MODIFIED", (event, modified, data = undefined) => {
+  ipcMain.handle("SET_MODIFIED", (_, modified, data = undefined) => {
     if (modified) {
       win.setTitle(lastFileName + "*");
     }
@@ -169,7 +169,7 @@ async function createWindow() {
     return data;
   });
 
-  const saveFileHandler = (event, data) => {
+  const saveFileHandler = (_, data) => {
     if (lastOpenPath) {
       try {
         saveFile(lastOpenPath, data);
@@ -184,7 +184,7 @@ async function createWindow() {
     }
   };
 
-  const saveAsFileHandler = (event, data) => {
+  const saveAsFileHandler = (_, data) => {
     let filePath = dialog.showSaveDialogSync(null, {
       showHiddenFiles: false,
       filters: [{ name: "Markdown", extensions: ["md", "txt"] }],
