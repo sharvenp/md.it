@@ -19,7 +19,7 @@ In addition, the editor supports a simple set of commands:
 
 The editor also supports emojis (e.g. `:joy:`, `:trophy:`) and superscript/subscript (e.g. `H~2~O`, `x^2^`)
 
-Try out the [browser](sharvenp.github.io/md.it/) version, and visit the [releases](https://github.com/sharvenp/md.it/releases) page for download options.
+Try out the [browser](https://sharvenp.github.io/md.it/) version, and visit the [releases](https://github.com/sharvenp/md.it/releases) page for download options.
 
 ----
 
