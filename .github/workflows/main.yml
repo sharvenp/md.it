@@ -18,7 +18,7 @@ jobs:
             - name: Get build files
               uses: actions/cache@v3
               with:
-                  path: build
+                  path: dist
                   key: ${{ format('{0}-{1}', github.ref_name, github.event.pull_request.head.sha || github.sha) }}
 
             - name: Cache dist files
@@ -26,12 +26,6 @@ jobs:
               with:
                   path: dist
                   key: dist-${{ format('{0}-{1}', github.ref_name, github.event.pull_request.head.sha || github.sha) }}
-
-            - name: Move build to dist
-              run: |
-                  rm -rf dist
-                  mkdir dist
-                  mv build/* dist
 
     deploy-pages:
         name: Deploy the files
