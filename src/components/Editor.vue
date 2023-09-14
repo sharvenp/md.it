@@ -32,6 +32,7 @@
         :editorLocked="editorLocked"
         :currentLayout="currentLayout"
         :spellCheck="spellCheck"
+        :isIPCSupported="isIPCSupported"
         @toggle-spell-check="onSpellCheckToggle"
         @layout-change="onLayoutChange"
         @open-file="onOpenFile"
@@ -51,13 +52,15 @@ import { oneDark } from "@codemirror/theme-one-dark";
 
 import { Splitpanes, Pane } from "splitpanes";
 
-//import { marked } from "marked";
 import MarkdownIt from 'markdown-it';
 import MarkdownitSup from 'markdown-it-sup';
 import MarkdownitSub from 'markdown-it-sub';
 import MarkdownitEmoji from 'markdown-it-emoji';
+
 import DOMPurify from "dompurify";
+
 import ToolBarV from "./ToolBar.vue";
+import IPCCommands from "@/ipcCommands";
 
 export default {
   name: "EditorV",
@@ -75,7 +78,8 @@ export default {
       editorLocked: false,
       fileOpened: false,
       renderer: undefined,
-      md: undefined
+      md: undefined,
+      isIPCSupported: false
     };
   },
   setup() {
@@ -169,8 +173,7 @@ export default {
   computed: {
     compiledMarkdown: function () {
       return DOMPurify.sanitize(
-        //marked(processedText, { renderer: this.renderer })
-        this.md?.render(this.preProcess(this.inputText)) ?? ""
+        this.md?.render(this.preProcessText(this.inputText)) ?? ""
       );
     },
     showLeftPane() {
@@ -180,41 +183,31 @@ export default {
       return this.currentLayout === 0 || this.currentLayout === 2;
     },
   },
+  created() {
+    this.isIPCSupported = window.ipcRenderer !== undefined && window.ipcRenderer !== null;
+  },
   async beforeMount() {
     // pull data if there is any
     // this is used for cases where the user opens file with the "Open with" context menu option
-    let data = await window.ipcRenderer.call("GET_OPEN_DATA");
-    if (data[1] !== undefined) {
+    let data = await this.ipcCallWrapper(IPCCommands.GET_OPEN_DATA);
+    if (data !== undefined && data[1] !== undefined) {
       this.inputText = data[0];
       this.fileOpened = false;
-      window.ipcRenderer.call("SET_MODIFIED", false, this.inputText);
+      this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false, this.inputText);
     }
 
-    let settings = await window.ipcRenderer.call("GET_PREFERENCES");
-    this.currentLayout = settings.currentLayout ?? 2;
-    this.spellCheck = settings.spellCheck ?? false;
+    let userPreferences = await this.ipcCallWrapper(IPCCommands.GET_PREFERENCES);
+    this.currentLayout = userPreferences?.currentLayout ?? 2;
+    this.spellCheck = userPreferences?.spellCheck ?? false;
   },
   mounted() {
     // enable spellcheck
     this.updateSpellCheck();
 
-    // override the anchor tag generator to open links in new tab
-    // this.renderer = new marked.Renderer();
-    // this.renderer.link = function (href, title, text) {
-    //   return (
-    //     '<a target="_blank" href="' +
-    //     href +
-    //     '" title="' +
-    //     title +
-    //     '">' +
-    //     text +
-    //     "</a>"
-    //   );
-    // };
+    // setup markdown-it and add plugins
     this.md = new MarkdownIt({
       linkify: true,
-    })
-    .use(MarkdownitSup)
+    }).use(MarkdownitSup)
     .use(MarkdownitSub)
     .use(MarkdownitEmoji);
 
@@ -261,57 +254,126 @@ export default {
     });
   },
   methods: {
-    preProcess(text) {
+    preProcessText(text) {
       // pre-process the text before rendering
 
       // nothing for now
       return text;
     },
+    async ipcCallWrapper(...args) {
+      // call ipcRenderer only if it is defined
+      return await window.ipcRenderer?.call(...args)
+    },
     onUpdate() {
       if (this.fileOpened) {
         this.fileOpened = false;
-        window.ipcRenderer.call("SET_MODIFIED", false, this.inputText);
+        this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false, this.inputText);
       } else {
-        window.ipcRenderer.call("SET_MODIFIED", true, this.inputText);
+        this.ipcCallWrapper(IPCCommands.SET_MODIFIED, true, this.inputText);
       }
     },
     async onOpenFile() {
-      if (this.editorLocked) return;
-
+      if (this.editorLocked)
+      {
+        return;
+      }
       this.editorLocked = true;
-      let data = await window.ipcRenderer.call("OPEN_FILE");
+
+      if (this.isIPCSupported) {
+        // use IPC to handle open file
+      let data = await this.ipcCallWrapper(IPCCommands.OPEN_FILE);
       if (data !== undefined) {
         this.fileOpened = true;
         this.inputText = data;
       }
+    } else {
+        // use browser to handle open file
+        let inputEl = document.createElement('input');
+        inputEl.type = 'file';
+        inputEl.accept = ".txt,.md"
+        inputEl.style.display = "none";
+        inputEl.onchange = () => {
+          let files = Array.from(inputEl.files);
+          if (files.length > 0) {
+            let file = files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = () => {
+              this.fileOpened = true;
+              this.inputText = reader.result;
+            }
+            inputEl.remove();
+        }
+        };
+        inputEl.click();
+    }
+
       this.editorLocked = false;
     },
     async onSaveFile() {
-      if (this.editorLocked) return;
-
-      this.editorLocked = true;
-      let result = await window.ipcRenderer.call("SAVE_FILE", this.inputText);
-      if (result === 2) {
-        // there is no existing file to save
-        // so we defer to save-as file instead
-        this.editorLocked = false;
-        await this.onSaveAsFile();
-      } else if (result === 0) {
-        window.ipcRenderer.call("SET_MODIFIED", false);
+      if (this.editorLocked) {
+        return;
       }
+      this.editorLocked = true;
+
+      if (this.isIPCSupported) {
+        // use IPC to handle save file
+        let result = await this.ipcCallWrapper(IPCCommands.SAVE_FILE, this.inputText);
+        if (result === 2) {
+          // there is no existing file to save
+          // so we defer to save-as file instead
+          this.editorLocked = false;
+          await this.onSaveAsFile();
+        } else if (result === 0) {
+          this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false);
+        }
+      } else {
+        // defer to save as
+        this.editorLocked = false;
+        this.onSaveAsFile();
+      }
+
+
       this.editorLocked = false;
     },
     async onSaveAsFile() {
-      if (this.editorLocked) return;
+      if (this.editorLocked) {
+        return;
+      }
 
       this.editorLocked = true;
-      let result = await window.ipcRenderer.call(
-        "SAVE_AS_FILE",
-        this.inputText
-      );
-      if (result === 0) {
-        window.ipcRenderer.call("SET_MODIFIED", false);
+
+      if (this.isIPCSupported) {
+        // use IPC to handle save file
+        let result = await this.ipcCallWrapper(
+          IPCCommands.SAVE_AS_FILE,
+          this.inputText
+        );
+        if (result === 0) {
+          this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false);
+        }
+      } else {
+        // use browser to handle save file
+        var fileBlob = new Blob([ this.inputText ], { type: 'text/plain' });
+        var fileNameToSaveAs = "file.md";
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        downloadLink.style.display = "none";
+        if (window.webkitURL != null) {
+          // Chrome allows the link to be clicked without actually adding it to the DOM.
+          downloadLink.href = window.webkitURL.createObjectURL(fileBlob);
+        } else {
+          // Firefox requires the link to be added to the DOM before it can be clicked.
+          downloadLink.href = window.URL.createObjectURL(fileBlob);
+          downloadLink.onclick = () => downloadLink.remove();
+          document.body.appendChild(downloadLink);
+        }
+
+        downloadLink.click();
       }
+
       this.editorLocked = false;
     },
     onLayoutChange() {
@@ -330,7 +392,7 @@ export default {
       }
     },
     updatePreferences() {
-      window.ipcRenderer.call("SET_PREFERENCES", {
+      this.ipcCallWrapper(IPCCommands.SET_PREFERENCES, {
         currentLayout: this.currentLayout,
         spellCheck: this.spellCheck,
       });
@@ -358,6 +420,7 @@ export default {
   color: white;
   text-align: left;
   background-color: rgb(40, 44, 52) !important;
+  overflow-wrap: break-word;
 }
 
 .column {

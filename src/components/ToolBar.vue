@@ -29,6 +29,7 @@
         id="save-button"
         type="button"
         title="Save"
+        v-show="isIPCSupported"
         :disabled="editorLocked"
         class="btn btn-dark ms-2"
         @click="saveFile"
@@ -167,6 +168,7 @@ export default {
     currentLayout: Number,
     spellCheck: Boolean,
     editorLocked: Boolean,
+    isIPCSupported: Boolean
   },
   data() {
     return {

@@ -16,6 +16,7 @@ import windowStateKeeper from "electron-window-state";
 import storage from "electron-json-storage";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import * as path from "path";
+import IPCCommands from "./ipcCommands";
 // import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -127,11 +128,11 @@ async function createWindow() {
   }
 
   // ipcMain handlers
-  ipcMain.handle("GET_OPEN_DATA", () => {
+  ipcMain.handle(IPCCommands.GET_OPEN_DATA, () => {
     return [dataBackup, lastOpenPath];
   });
 
-  ipcMain.handle("SET_MODIFIED", (_, modified, data = undefined) => {
+  ipcMain.handle(IPCCommands.SET_MODIFIED, (_, modified, data = undefined) => {
     if (modified) {
       win.setTitle(lastFileName + "*");
     }
@@ -144,7 +145,7 @@ async function createWindow() {
     }
   });
 
-  ipcMain.handle("OPEN_FILE", () => {
+  ipcMain.handle(IPCCommands.OPEN_FILE, () => {
     let result = dialog.showOpenDialogSync(null, {
       openFile: true,
       openDirectory: false,
@@ -203,14 +204,14 @@ async function createWindow() {
     return 2;
   };
 
-  ipcMain.handle("SAVE_FILE", saveFileHandler);
-  ipcMain.handle("SAVE_AS_FILE", saveAsFileHandler);
+  ipcMain.handle(IPCCommands.SAVE_FILE, saveFileHandler);
+  ipcMain.handle(IPCCommands.SAVE_AS_FILE, saveAsFileHandler);
 
-  ipcMain.handle("GET_PREFERENCES", () => {
+  ipcMain.handle(IPCCommands.GET_PREFERENCES, () => {
     return preferences;
   });
 
-  ipcMain.handle("SET_PREFERENCES", (_, newPreferences) => {
+  ipcMain.handle(IPCCommands.SET_PREFERENCES, (_, newPreferences) => {
     preferences = newPreferences;
     storage.set("user-preferences", preferences);
   });
