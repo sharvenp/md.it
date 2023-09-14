@@ -11,7 +11,7 @@ jobs:
             cache_sha: ${{ format('{0}-{1}', github.ref_name, github.event.pull_request.head.sha || github.sha) }}
 
     post-build:
-        name: Merge dev & prod into a bundle
+        name: Create bundle
         needs: build
         runs-on: ubuntu-latest
         steps:
@@ -19,7 +19,7 @@ jobs:
               uses: actions/cache@v3
               with:
                   path: build
-                  key: ${{ format('{0}-{1}', github.ref_name, github.event.pull_request.head.sha || github.sha) }}
+                  key: build-${{ format('{0}-{1}', github.ref_name, github.event.pull_request.head.sha || github.sha) }}
 
             - name: Cache dist files
               uses: actions/cache@v3
@@ -34,8 +34,8 @@ jobs:
                   mv build/* dist
 
     deploy-pages:
-        needs: post-build
         name: Deploy the files
+        needs: post-build
         uses: ./.github/workflows/pages.yml
         with:
             cache_sha: ${{ format('{0}-{1}', github.ref_name, github.event.pull_request.head.sha || github.sha) }}
