@@ -1,18 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
+import IPCCommands from "./ipcCommands";
 
 // Expose ipcRenderer to the client
 contextBridge.exposeInMainWorld("ipcRenderer", {
   call: (channel, ...args) => {
-    let validChannels = [
-      "GET_OPEN_DATA",
-      "SET_MODIFIED",
-      "OPEN_FILE",
-      "SAVE_FILE",
-      "SAVE_AS_FILE",
-      "GET_PREFERENCES",
-      "SET_PREFERENCES",
-    ];
-    if (validChannels.includes(channel)) {
+    if (IPCCommands[channel] !== undefined) {
       return ipcRenderer.invoke(channel, ...args);
     }
   },
