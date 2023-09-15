@@ -72,12 +72,12 @@ pre > code {
 
 blockquote {
   background-color: transparent;
-  margin: 0;
+  margin: 1.5rem;
+  padding-left: 1rem;
+  border-left: solid rgba(255, 255, 255, 0.4) 2px;
   width: 100%;
 }
-blockquote > p {
-  border-left: solid rgba(255, 255, 255, 0.4) 2px;
-  padding-left: 15px;
+blockquote > * {
   color: rgba(255, 255, 255, 0.4) !important;
 }
 
