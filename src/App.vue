@@ -93,6 +93,15 @@ table {
   border: 2px solid rgba(255, 255, 255, 0.548) !important;
 }
 
+.task-list {
+  list-style-type: none;
+  padding-left: 1remgit;
+}
+
+.task-list-item label {
+  padding-left: 0.5rem;
+}
+
 .noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;

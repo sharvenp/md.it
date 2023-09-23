@@ -30,6 +30,7 @@
     "markdown-it-emoji": "^2.0.2",
     "markdown-it-sub": "^1.0.0",
     "markdown-it-sup": "^1.0.0",
+    "markdown-it-task-checkbox": "^1.0.6",
     "marked": "^4.0.17",
     "splitpanes": "^3.1.1",
     "vue": "^3.2.13",

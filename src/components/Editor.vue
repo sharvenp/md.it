@@ -54,6 +54,7 @@ import { Splitpanes, Pane } from "splitpanes";
 
 import MarkdownIt from 'markdown-it';
 import MarkdownitSup from 'markdown-it-sup';
+import MarkdownitCheckbox from 'markdown-it-task-checkbox';
 import MarkdownitSub from 'markdown-it-sub';
 import MarkdownitEmoji from 'markdown-it-emoji';
 
@@ -209,7 +210,8 @@ export default {
       linkify: true,
     }).use(MarkdownitSup)
     .use(MarkdownitSub)
-    .use(MarkdownitEmoji);
+    .use(MarkdownitEmoji)
+    .use(MarkdownitCheckbox);
 
     // add hook to override target in anchor tags
     DOMPurify.addHook("afterSanitizeAttributes", function (node) {
