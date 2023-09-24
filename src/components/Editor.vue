@@ -416,6 +416,10 @@ export default {
   margin: 0 12px 0 12px;
 }
 
+#view-col {
+  background-color: rgb(40, 44, 52) !important;
+}
+
 .preview {
   width: 100%;
   height: auto;
