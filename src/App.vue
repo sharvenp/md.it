@@ -93,9 +93,13 @@ table {
   border: 2px solid rgba(255, 255, 255, 0.548) !important;
 }
 
-.task-list {
+.task-list > .task-list-item {
   list-style-type: none;
-  padding-left: 1remgit;
+  pointer-events:none
+}
+
+.task-list-item input {
+  margin-left: -1.3rem;
 }
 
 .task-list-item label {

@@ -299,9 +299,14 @@ Nunc auctor turpis purus, eu bibendum ipsum varius eu. Vestibulum et feugiat ris
 
 TODO tasks:
 
+- non task item
 - [x] Task 1
 - [ ] Task 2
+  - nested
+    - [d] bad item
+    - [X] good item
 - [ ] Task 3
     - [ ] Nested Task
         - [X] More Nested
+        - after 
 - [ ] Task 4

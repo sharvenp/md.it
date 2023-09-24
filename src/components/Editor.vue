@@ -211,7 +211,9 @@ export default {
     }).use(MarkdownitSup)
     .use(MarkdownitSub)
     .use(MarkdownitEmoji)
-    .use(MarkdownitCheckbox);
+    .use(MarkdownitCheckbox, {
+        disabled: false,
+      });
 
     // add hook to override target in anchor tags
     DOMPurify.addHook("afterSanitizeAttributes", function (node) {
