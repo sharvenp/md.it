@@ -310,3 +310,11 @@ TODO tasks:
         - [X] More Nested
         - after 
 - [ ] Task 4
+
+## Table
+
+| column1              | X | Y   | Long | Int  |
+|----------------------|---|-----|------|------|
+| Hello                |   | wow | cool | 🤯   |
+|                      |   |     |      |      |
+| Above is a blank row |   |  green   | oni  | cool |

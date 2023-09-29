@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap");
+
+/* Root Color CSS */
+
+/* Define styles for the default root window element */
+:root {
+    --preview-color: rgb(243, 243, 243);
+
+    --text-primary-color: black;
+
+	--el-body-color: rgb(219, 219, 219);
+	--el-header-border-color: rgba(0, 0, 0, 0.158);
+	--el-code-border-color: rgba(145, 145, 145, 0.2);
+	--el-code-color: rgba(231, 231, 231);
+	--el-blockquote-color: rgba(218, 218, 218);
+	--el-blockquote-text-color: rgba(0, 0, 0, 0.5);
+    --el-table-border-color: rgb(207, 207, 207);
+
+    --accent-color: rgb(220, 222, 226);
+    --logo-color: rgb(58, 58, 58);
+    --logo-border-color: rgb(173, 173, 173);
+    --scrollbar-corner-color: rgba(255, 255, 255, 0);
+    --scrollbar-color-hover: rgba(109, 110, 112, 0.2);
+}
+
+/* Define styles for the root window with dark - mode preference */
+:root.dark-theme {
+    --preview-color: rgb(40, 44, 52);
+
+    --text-primary-color: white;
+
+	--el-body-color: rgb(23, 24, 29);
+	--el-header-border-color: rgba(255, 255, 255, 0.158);
+	--el-code-border-color: rgb(126, 126, 126);
+	--el-code-color: rgba(58, 71, 85, 0.315);
+	--el-blockquote-color: rgba(255, 255, 255, 0.4);
+	--el-blockquote-text-color: rgba(255 255, 255, 0.5);
+    --el-table-border-color: rgba(255, 255, 255, 0.548);
+
+    --accent-color: rgb(48, 54, 61);
+    --logo-color: rgb(189, 185, 185);
+    --logo-border-color: rgb(82, 82, 82);
+    --scrollbar-corner-color: rgba(0, 0, 0, 0);
+    --scrollbar-color-hover: rgba(128, 128, 128, 0.2);
+}
+
+/* App CSS */
+
+#app {
+	font-family: "Lato", "Helvetica", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	background-color: var(--preview-color);
+}
+
+html,
+body {
+	height: 100%;
+	background-color: var(--el-body-color);
+}
+
+h1,
+h2,
+h3 {
+	font-weight: bold !important;
+	margin-top: 20px !important;
+	margin-right: 20px !important;
+	width: 100%;
+	border-bottom: 1px solid var(--el-header-border-color);
+	padding-bottom: 10px;
+}
+
+h3 {
+	border: none !important;
+}
+
+p {
+	margin-top: 1rem !important;
+	margin-bottom: 1rem !important;
+}
+
+code {
+	padding: 2px;
+	margin: 2px;
+	border: 1px solid var(--el-code-border-color);
+	background-color: var(--el-code-color);
+	color: var(--text-primary-color) !important;
+	border-radius: 3px;
+}
+
+pre {
+	border: 1px solid var(--el-code-border-color);
+	border-radius: 3px;
+	background-color: var(--el-code-color) !important;
+	width: 100%;
+	padding: 10px;
+}
+
+pre > code {
+	border: none;
+	background-color: transparent;
+}
+
+blockquote {
+	background-color: transparent;
+	margin: 1.5rem;
+	padding-left: 1rem;
+	border-left: solid 3px var(--el-blockquote-color);
+	width: 100%;
+}
+
+blockquote > * {
+	color: var(--el-blockquote-text-color) !important;
+}
+
+table,
+th,
+td {
+	border: 1px solid var(--el-table-border-color) !important;
+	border-collapse: collapse;
+	padding: 10px;
+}
+
+table {
+	border: 2px solid var(--el-table-border-color) !important;
+}
+
+.task-list>.task-list-item {
+	list-style-type: none;
+	pointer-events: none
+}
+
+.task-list-item input {
+	margin-left: -1.3rem;
+}
+
+.task-list-item label {
+	padding-left: 0.5rem;
+}
+
+/* Editor CSS */
+
+.cm-editor * {
+    font-family: "Fira Mono", monospace;
+}
+
+.view {
+    margin: 0 12px 0 12px;
+}
+
+#view-col {
+    background-color: var(--preview-color) !important;
+}
+
+.preview {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    padding: 20px 20px 40px 20px;
+    color: var(--text-primary-color);
+    text-align: left;
+    background-color: var(--preview-color) !important;
+    overflow-wrap: break-word;
+}
+
+.column {
+    /* adjust height for the bottom bar */
+    height: calc(100vh - 67px);
+    overflow: auto;
+}
+
+.splitpanes--vertical>.splitpanes__splitter {
+    border: none !important;
+    width: 10px !important;
+    background-color: var(--accent-color) !important;
+}
+
+.noselect {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Tool Bar CSS */
+
+.bottom-bar {
+    padding: 10px;
+    background-color: var(--el-body-color);
+    border-top: var(--accent-color) 2px solid;
+}
+
+.flex-bar {
+    height: 45px;
+}
+
+.logo {
+    color: var(--logo-color);
+    border: 1px solid var(--logo-border-color);
+    border-radius: 5px;
+}
+
+/* Custom Scrollbar */
+
+::-webkit-scrollbar {
+	width: 20px;
+	background-color: var(--preview-color);
+}
+
+::-webkit-scrollbar-corner {
+	background: var(--scrollbar-corner-color);
+}
+
+::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--accent-color);
+	border-radius: 20px;
+	border: 6px solid transparent;
+	background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--scrollbar-color-hover);
+}
