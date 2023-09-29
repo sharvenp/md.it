@@ -8,7 +8,7 @@
                             width: '100%',
                             height: '100%',
                         }" placeholder="Type something..." :autofocus="true" :indent-with-tab="true" :tab-size="2"
-                            :extensions="extensions" :disabled="editorLocked" @change="onUpdate" />
+                            :extensions="codemirrorExtensions" :disabled="editorLocked" @change="onUpdate" />
                     </div>
                 </pane>
                 <pane v-if="showRightPane">
@@ -19,9 +19,19 @@
             </splitpanes>
         </div>
         <div class="row">
-            <ToolBarV :editorLocked="editorLocked" :currentLayout="currentLayout" :spellCheck="spellCheck"
-                :isIPCSupported="isIPCSupported" @toggle-spell-check="onSpellCheckToggle" @layout-change="onLayoutChange"
-                @open-file="onOpenFile" @save-file="onSaveFile" @save-as-file="onSaveAsFile" />
+            <ToolBarV
+                :editorLocked="editorLocked"
+                :currentLayout="currentLayout"
+                :spellCheck="spellCheck"
+                :current-theme="currentTheme"
+                :isIPCSupported="isIPCSupported"
+                @toggle-spell-check="onSpellCheckToggle"
+                @layout-change="onLayoutChange"
+                @open-file="onOpenFile"
+                @save-file="onSaveFile"
+                @save-as-file="onSaveAsFile"
+                @toggle-theme="onThemeToggle"
+            />
         </div>
     </div>
 </template>
@@ -58,6 +68,7 @@ export default {
         return {
             inputText: "",
             currentLayout: 2,
+            currentTheme: false,
             spellCheck: false,
             editorLocked: false,
             fileOpened: false,
@@ -141,7 +152,6 @@ export default {
 
         const extensions = [
             markdown(),
-            oneDark,
             EditorView.lineWrapping,
             keymap.of([
                 ...createCustomKeyMod("Mod", "b", "**"),
@@ -166,6 +176,9 @@ export default {
         showRightPane() {
             return this.currentLayout === 0 || this.currentLayout === 2;
         },
+        codemirrorExtensions() {
+            return this.currentTheme ? this.extensions : [...this.extensions, oneDark]
+        }
     },
     created() {
         this.isIPCSupported = window.ipcRenderer !== undefined && window.ipcRenderer !== null;
@@ -180,13 +193,18 @@ export default {
             this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false, this.inputText);
         }
 
-        let userPreferences = await this.ipcCallWrapper(IPCCommands.GET_PREFERENCES);
+        let userPreferences = await this.getPreferences();
         this.currentLayout = userPreferences?.currentLayout ?? 2;
         this.spellCheck = userPreferences?.spellCheck ?? false;
-    },
-    mounted() {
+        this.currentTheme = userPreferences?.currentTheme ?? false;
+
         // enable spellcheck
         this.updateSpellCheck();
+
+        // update theme
+        this.updateTheme();
+    },
+    mounted() {
 
         // setup markdown-it and add plugins
         this.md = new MarkdownIt({
@@ -371,57 +389,47 @@ export default {
             this.updateSpellCheck();
             this.updatePreferences();
         },
+        onThemeToggle() {
+            this.currentTheme = !this.currentTheme
+            this.updateTheme();
+            this.updatePreferences();
+        },
         updateSpellCheck() {
             let el = document.getElementsByClassName("cm-content")[0];
             if (el) {
                 el.spellcheck = this.spellCheck;
             }
         },
+        updateTheme() {
+            if (this.currentTheme) {
+                document.documentElement.className = "light-theme";
+            } else {
+                document.documentElement.className = "dark-theme";
+            }
+        },
+        async getPreferences() {
+            if (this.isIPCSupported) {
+                // get preferences from file
+                return await this.ipcCallWrapper(IPCCommands.GET_PREFERENCES)
+            } else {
+                // get from local storage
+                return JSON.parse(localStorage?.getItem("preferences"));
+            }
+        },
         updatePreferences() {
-            this.ipcCallWrapper(IPCCommands.SET_PREFERENCES, {
+            let preferences = {
                 currentLayout: this.currentLayout,
                 spellCheck: this.spellCheck,
-            });
+                currentTheme: this.currentTheme
+            };
+            if (this.isIPCSupported) {
+                // set preferences to file
+                this.ipcCallWrapper(IPCCommands.SET_PREFERENCES, preferences);
+            } else {
+                // set preferences to local storage
+                localStorage?.setItem('preferences', JSON.stringify(preferences))
+            }
         },
     },
 };
 </script>
-
-<style>
-@import url("https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap");
-
-.cm-editor * {
-    font-family: "Fira Mono", monospace;
-}
-
-.view {
-    margin: 0 12px 0 12px;
-}
-
-#view-col {
-    background-color: rgb(40, 44, 52) !important;
-}
-
-.preview {
-    width: 100%;
-    height: auto;
-    min-height: 100%;
-    padding: 20px 20px 40px 20px;
-    color: white;
-    text-align: left;
-    background-color: rgb(40, 44, 52) !important;
-    overflow-wrap: break-word;
-}
-
-.column {
-    /* adjust height for the bottom bar */
-    height: calc(100vh - 67px);
-    overflow: auto;
-}
-
-.splitpanes--vertical>.splitpanes__splitter {
-    border: none !important;
-    width: 10px !important;
-    background-color: rgb(48, 54, 61) !important;
-}
-</style>
