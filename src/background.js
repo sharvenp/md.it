@@ -48,6 +48,7 @@ async function createWindow() {
       icon: path.join(__static, "icon.png"),
       spellcheck: true,
     },
+    frame: false,
   });
 
   mainWindowState.manage(win);
@@ -121,7 +122,7 @@ async function createWindow() {
         encoding: "utf8",
         flag: "r",
       });
-      win.setTitle(lastFileName);
+      //win.setTitle(lastFileName);
     } catch {
       // do nothing
     }
@@ -133,12 +134,12 @@ async function createWindow() {
   });
 
   ipcMain.handle(IPCCommands.SET_MODIFIED, (_, modified, data = undefined) => {
-    if (modified) {
-      win.setTitle(lastFileName + "*");
-    }
-    if (!modified) {
-      win.setTitle(lastFileName);
-    }
+    // if (modified) {
+    //   win.setTitle(lastFileName + "*");
+    // }
+    // if (!modified) {
+    //   win.setTitle(lastFileName);
+    // }
     lastModified = modified;
     if (data !== undefined) {
       dataBackup = data;
@@ -162,7 +163,7 @@ async function createWindow() {
         });
         lastOpenPath = result[0];
         lastFileName = path.basename(result[0]);
-        win.setTitle(lastFileName);
+        //win.setTitle(lastFileName);
       } catch {
         // do nothing
       }
@@ -175,7 +176,7 @@ async function createWindow() {
       try {
         saveFile(lastOpenPath, data);
         lastFileName = path.basename(lastOpenPath);
-        win.setTitle(lastFileName);
+        //win.setTitle(lastFileName);
         return 0;
       } catch {
         return 1;
@@ -195,7 +196,7 @@ async function createWindow() {
         saveFile(filePath, data);
         lastOpenPath = filePath;
         lastFileName = path.basename(filePath);
-        win.setTitle(lastFileName);
+        //win.setTitle(lastFileName);
         return 0;
       } catch (e) {
         return 1;
@@ -214,6 +215,30 @@ async function createWindow() {
   ipcMain.handle(IPCCommands.SET_PREFERENCES, (_, newPreferences) => {
     preferences = newPreferences;
     storage.set("user-preferences", preferences);
+  });
+
+  ipcMain.handle(IPCCommands.GET_FILENAME, () => {
+    return lastFileName;
+  });
+
+  ipcMain.handle(IPCCommands.GET_MAXIMIZED_STATE, () => {
+    return win.isMaximized();
+  });
+
+  ipcMain.handle(IPCCommands.CLOSE, () => {
+    win.close();
+  });
+
+  ipcMain.handle(IPCCommands.MAXIMIZE, () => {
+    win.maximize();
+  });
+
+  ipcMain.handle(IPCCommands.UNMAXIMIZE, () => {
+    win.unmaximize();
+  });
+
+  ipcMain.handle(IPCCommands.MINIMIZE, () => {
+    win.minimize();
   });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
