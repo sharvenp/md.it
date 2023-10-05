@@ -9,7 +9,7 @@
 
     --text-primary-color: black;
 
-	--el-body-color: rgb(219, 219, 219);
+	--el-body-color: rgb(221, 221, 221);
 	--el-header-border-color: rgba(0, 0, 0, 0.158);
 	--el-code-border-color: rgba(145, 145, 145, 0.2);
 	--el-code-color: rgba(231, 231, 231);
@@ -134,6 +134,8 @@ table {
 
 .task-list-item input {
 	margin-left: -1.3rem;
+	margin-top: 0.37rem;
+	vertical-align: top;
 }
 
 .task-list-item label {
@@ -167,7 +169,7 @@ table {
 
 .column {
     /* adjust height for the bottom bar */
-    height: calc(100vh - 67px);
+    height: calc(100vh - (67px + 35px));
     overflow: auto;
 }
 
@@ -186,6 +188,32 @@ table {
 	user-select: none;
 }
 
+/* Title Bar CSS */
+
+.title-bar {
+	-webkit-user-select: none;
+	-webkit-app-region: drag;
+    background-color: var(--el-body-color);
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.title-bar button {
+	-webkit-app-region: no-drag;
+}
+
+.title-flex-bar {
+    height: 25px;
+}
+
+.title-bar .unmaximize-icon {
+	transform: rotate(90deg) scaleY(-1);
+}
+
+.file-name {
+	color: var(--text-primary-color);
+}
+
 /* Tool Bar CSS */
 
 .bottom-bar {
@@ -194,7 +222,7 @@ table {
     border-top: var(--accent-color) 2px solid;
 }
 
-.flex-bar {
+.bottom-flex-bar {
     height: 45px;
 }
 

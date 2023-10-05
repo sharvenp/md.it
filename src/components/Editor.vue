@@ -1,6 +1,15 @@
 <template>
     <div class="view">
         <div class="row">
+            <TitleBarV
+                :key="titleBarKey"
+                :modified="modified"
+                :editorLocked="editorLocked"
+                :current-theme="currentTheme"
+                :isIPCSupported="isIPCSupported"
+            />
+        </div>
+        <div class="row">
             <splitpanes class="default-theme">
                 <pane v-if="showLeftPane">
                     <div id="editor-col" class="p-0 column">
@@ -54,12 +63,14 @@ import MarkdownitEmoji from 'markdown-it-emoji';
 import DOMPurify from "dompurify";
 
 import ToolBarV from "./ToolBar.vue";
+import TitleBarV from "./TitleBar.vue";
 import IPCCommands from "@/ipcCommands";
 
 export default {
     name: "EditorV",
     components: {
         Codemirror,
+        TitleBarV,
         ToolBarV,
         Splitpanes,
         Pane,
@@ -67,6 +78,8 @@ export default {
     data() {
         return {
             inputText: "",
+            titleBarKey: "",
+            modified: false,
             currentLayout: 2,
             currentTheme: false,
             spellCheck: false,
@@ -190,6 +203,7 @@ export default {
         if (data !== undefined && data[1] !== undefined) {
             this.inputText = data[0];
             this.fileOpened = false;
+            this.modified = false;
             this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false, this.inputText);
         }
 
@@ -272,8 +286,10 @@ export default {
         onUpdate() {
             if (this.fileOpened) {
                 this.fileOpened = false;
+                this.modified = false;
                 this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false, this.inputText);
             } else {
+                this.modified = true;
                 this.ipcCallWrapper(IPCCommands.SET_MODIFIED, true, this.inputText);
             }
         },
@@ -312,6 +328,8 @@ export default {
                 inputEl.click();
             }
 
+            this.titleBarKey = Math.random().toString(); // Update the title bar
+            this.modified = false;
             this.editorLocked = false;
         },
         async onSaveFile() {
@@ -329,6 +347,7 @@ export default {
                     this.editorLocked = false;
                     await this.onSaveAsFile();
                 } else if (result === 0) {
+                    this.modified = false;
                     this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false);
                 }
             } else {
@@ -354,7 +373,8 @@ export default {
                     this.inputText
                 );
                 if (result === 0) {
-                    this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false);
+                    this.modified = false;
+                    this.ipcCallWrapper(IPCCommands.SET_MODIFIED, false, this.inputText);
                 }
             } else {
                 // use browser to handle save file
