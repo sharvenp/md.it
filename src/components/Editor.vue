@@ -79,8 +79,6 @@ import ToolBarV from "./ToolBar.vue";
 import TitleBarV from "./TitleBar.vue";
 import IPCCommands from "@/ipcCommands";
 
-import { debounce } from "debounce";
-
 export default {
     name: "EditorV",
     components: {
@@ -320,16 +318,19 @@ export default {
          * Scroll Functions
         */
         _setupScrollEventListeners() {
-
-            let viewFunc = debounce(
-                (event) => {
+            let viewFunc = (event) => {
+                    if (this.scrollLock[0]) {
+                        return;
+                    }
                     this.syncEditorScroll(event);
-                }, 50);
+                };
 
-            let editorFunc = debounce(
-                (event) => {
+            let editorFunc = (event) => {
+                    if (this.scrollLock[1]) {
+                        return;
+                    }
                     this.syncViewerScroll(event);
-                }, 50);
+                };
 
             // remove scroll event handlers
             this.$refs.viewer?.removeEventListener('scroll', viewFunc);
@@ -340,14 +341,22 @@ export default {
             this.codemirrorView.scrollDOM?.addEventListener('scroll', editorFunc, false)
         },
         resetScroll() {
+            this.scrollLock = [true, true];
             let viewer = this.$refs.viewer;
             if (viewer) {
-                viewer.scrollTop = 0;
+                viewer.scrollTo({
+                    top: 0,
+                    behavior: 'instant'})
             }
             let editorScroller = this.codemirrorView.scrollDOM;
             if (editorScroller) {
-                editorScroller.scrollTop = 0;
+                editorScroller.scrollTo({
+                    top: 0,
+                    behavior: 'instant'})
             }
+            setTimeout(() => {
+                this.scrollLock = [false, false];
+            }, 100);
         },
         buildScrollMap() {
             let editor = this.codemirrorView.scrollDOM;
@@ -418,9 +427,7 @@ export default {
 
         },
         syncViewerScroll(event) {
-            if ((event && !event.target.matches(":hover")) ||
-                (event && event.target.matches(":hover") && this.scrollLock[1]) ||
-                !this.scrollLink) {
+            if ((event && !event.target.matches(":hover")) || !this.scrollLink) {
                 return;
             }
 
@@ -599,6 +606,10 @@ export default {
                 this.$nextTick(() => {
                     // set up scroll listeners again
                     this._setupScrollEventListeners();
+                    this.scrollLock = [false, false];
+                    if (this.scrollLink) {
+                        this.syncViewerScroll();
+                    }
                 });
                 this.syncViewerScroll();
             } else if (this.currentLayout > 0) {
