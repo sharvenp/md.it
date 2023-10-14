@@ -319,18 +319,18 @@ export default {
         */
         _setupScrollEventListeners() {
             let viewFunc = (event) => {
-                    if (this.scrollLock[0]) {
-                        return;
-                    }
-                    this.syncEditorScroll(event);
-                };
+                if (this.scrollLock[0]) {
+                    return;
+                }
+                this.syncEditorScroll(event);
+            };
 
             let editorFunc = (event) => {
-                    if (this.scrollLock[1]) {
-                        return;
-                    }
-                    this.syncViewerScroll(event);
-                };
+                if (this.scrollLock[1]) {
+                    return;
+                }
+                this.syncViewerScroll(event);
+            };
 
             // remove scroll event handlers
             this.$refs.viewer?.removeEventListener('scroll', viewFunc);
@@ -356,7 +356,7 @@ export default {
             }
             setTimeout(() => {
                 this.scrollLock = [false, false];
-            }, 100);
+            }, 50);
         },
         buildScrollMap() {
             let editor = this.codemirrorView.scrollDOM;
@@ -416,15 +416,15 @@ export default {
                 }
             }
             let lineNo = parseInt(el?.dataset.sourceLine ?? 0);
-            editorScroller.scrollTop = lineNo * this.codemirrorView.defaultLineHeight;
+            editorScroller.scrollTo({
+                    top: lineNo * this.codemirrorView.defaultLineHeight,
+                    behavior: 'smooth'})
 
             // lock the scroller of the editor until animation is complete
             this.scrollLock[1] = true;
-            editorScroller?.addEventListener('scrollend', () => {
-                // release lock
+            setTimeout(() => {
                 this.scrollLock[1] = false;
-            }, { once: true })
-
+            }, 200);
         },
         syncViewerScroll(event) {
             if ((event && !event.target.matches(":hover")) || !this.scrollLink) {
@@ -444,14 +444,15 @@ export default {
 
             let editorTopHeight = this.codemirrorView.lineBlockAtHeight(editorScroller.scrollTop).from;
             let topLineNo = this.codemirrorView.state.doc.lineAt(editorTopHeight).number
-            preview.scrollTop =  this.scrollMap[topLineNo - 1];
+            preview.scrollTo({
+                    top: this.scrollMap[topLineNo - 1],
+                    behavior: 'smooth'})
 
             // lock the scroller of the viewer until animation is complete
             this.scrollLock[0] = true;
-            preview?.addEventListener('scrollend', () => {
-                // release lock
+            setTimeout(() => {
                 this.scrollLock[0] = false;
-            }, { once: true })
+            }, 200);
         },
         /**
          * On Change Functions
