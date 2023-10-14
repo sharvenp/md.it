@@ -52,6 +52,7 @@ async function createWindow() {
   });
 
   mainWindowState.manage(win);
+  //win.webContents.openDevTools();
 
   win.webContents.session.setSpellCheckerLanguages(["en-US"]);
   win.webContents.on("context-menu", (_, params) => {

@@ -148,12 +148,17 @@ table {
     font-family: "Fira Mono", monospace;
 }
 
+.cm-scroller {
+	scroll-behavior: smooth;
+}
+
 .view {
     margin: 0 12px 0 12px;
 }
 
 #view-col {
     background-color: var(--preview-color) !important;
+	scroll-behavior: smooth;
 }
 
 .preview {

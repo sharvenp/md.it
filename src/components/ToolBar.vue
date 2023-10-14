@@ -65,6 +65,10 @@
                     <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
                 </svg>
             </button>
+            <button type="button" id="scroll-link-button" title="Toggle Scroll Link" :class="`btn btn-${buttonColorClass} ms-2`" @click="toggleScrollLink">
+                <svg v-if="scrollLink" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" :fill="svgFill"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" :fill="svgFill"><path d="m770-302-60-62q40-11 65-42.5t25-73.5q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 57-29.5 105T770-302ZM634-440l-80-80h86v80h-6ZM792-56 56-792l56-56 736 736-56 56ZM440-280H280q-83 0-141.5-58.5T80-480q0-69 42-123t108-71l74 74h-24q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h65l79 80H320Z"/></svg>
+            </button>
             <a class="logo ms-auto text-decoration-none noselect" href="https://github.com/sharvenp/md.it" target="_blank">
                 <div class="d-flex">
                     <img width="40" class="p-1" src="../../public/icon.png" />
@@ -84,6 +88,7 @@ export default {
         currentLayout: Number,
         spellCheck: Boolean,
         currentTheme: Boolean,
+        scrollLink: Boolean,
         editorLocked: Boolean,
         isIPCSupported: Boolean
     },
@@ -95,6 +100,9 @@ export default {
     computed: {
         buttonColorClass() {
             return this.currentTheme ? 'light' : 'dark';
+        },
+        svgFill() {
+            return this.currentTheme ? 'black' : 'white';
         }
     },
     methods: {
@@ -120,6 +128,10 @@ export default {
         toggleTheme() {
             if (this.editorLocked) return;
             this.$emit("toggle-theme");
+        },
+        toggleScrollLink() {
+            if (this.editorLocked) return;
+            this.$emit("toggle-scroll-link");
         }
     },
 };

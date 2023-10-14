@@ -25,6 +25,7 @@ export default {
     name: "TitleBarV",
     props: {
         modified: Boolean,
+        changeKey: String,
         currentTheme: Boolean,
         editorLocked: Boolean,
         isIPCSupported: Boolean
@@ -45,9 +46,6 @@ export default {
     },
     mounted() {
         this.updateState();
-        addEventListener("resize", () => {
-            this.updateState();
-        });
     },
     methods: {
         async ipcCallWrapper(...args) {
@@ -84,5 +82,10 @@ export default {
             await this.ipcCallWrapper(IPCCommands.MINIMIZE)
         },
     },
+    watch: {
+        changeKey() {
+            this.updateState()
+        }
+    }
 };
 </script>

@@ -2,7 +2,8 @@
     <div class="view">
         <div class="row">
             <TitleBarV
-                :key="titleBarKey"
+                :key="`${titleBarKey}`"
+                :changeKey="`${titleBarKey}`"
                 :modified="modified"
                 :editorLocked="editorLocked"
                 :current-theme="currentTheme"
@@ -13,15 +14,23 @@
             <splitpanes class="default-theme">
                 <pane v-if="showLeftPane">
                     <div id="editor-col" class="p-0 column">
-                        <codemirror v-model="inputText" :style="{
+                        <codemirror v-model="inputText"
+                        :style="{
                             width: '100%',
                             height: '100%',
-                        }" placeholder="Type something..." :autofocus="true" :indent-with-tab="true" :tab-size="2"
-                            :extensions="codemirrorExtensions" :disabled="editorLocked" @change="onUpdate" />
+                        }"
+                        placeholder=""
+                        :autofocus="true"
+                        :indent-with-tab="true"
+                        :tab-size="2"
+                        :extensions="codemirrorExtensions"
+                        :disabled="editorLocked"
+                        @ready="handleReady"
+                        @change="onInputUpdate" />
                     </div>
                 </pane>
                 <pane v-if="showRightPane">
-                    <div id="view-col" class="p-0 column">
+                    <div id="view-col" class="p-0 column" ref="viewer">
                         <div v-html="compiledMarkdown" class="preview"></div>
                     </div>
                 </pane>
@@ -32,7 +41,8 @@
                 :editorLocked="editorLocked"
                 :currentLayout="currentLayout"
                 :spellCheck="spellCheck"
-                :current-theme="currentTheme"
+                :currentTheme="currentTheme"
+                :scrollLink="scrollLink"
                 :isIPCSupported="isIPCSupported"
                 @toggle-spell-check="onSpellCheckToggle"
                 @layout-change="onLayoutChange"
@@ -40,12 +50,14 @@
                 @save-file="onSaveFile"
                 @save-as-file="onSaveAsFile"
                 @toggle-theme="onThemeToggle"
+                @toggle-scroll-link="onScrollLinkToggle"
             />
         </div>
     </div>
 </template>
 
 <script>
+import { shallowRef } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { EditorView, keymap } from "@codemirror/view";
 import { EditorSelection, Transaction, Text } from "@codemirror/state";
@@ -55,6 +67,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import { Splitpanes, Pane } from "splitpanes";
 
 import MarkdownIt from 'markdown-it';
+import MarkdownItInjectLineNumbers from "markdown-it-inject-linenumbers";
 import MarkdownitSup from 'markdown-it-sup';
 import MarkdownitCheckbox from 'markdown-it-task-checkbox';
 import MarkdownitSub from 'markdown-it-sub';
@@ -65,6 +78,8 @@ import DOMPurify from "dompurify";
 import ToolBarV from "./ToolBar.vue";
 import TitleBarV from "./TitleBar.vue";
 import IPCCommands from "@/ipcCommands";
+
+import { debounce } from "debounce";
 
 export default {
     name: "EditorV",
@@ -82,11 +97,14 @@ export default {
             modified: false,
             currentLayout: 2,
             currentTheme: false,
+            scrollLink: true,
             spellCheck: false,
             editorLocked: false,
             fileOpened: false,
             renderer: undefined,
             md: undefined,
+            scrollMap: undefined,
+            scrollLock: [false, false],
             isIPCSupported: false
         };
     },
@@ -163,6 +181,11 @@ export default {
             ];
         };
 
+        const codemirrorView = shallowRef();
+        const handleReady = (payload) => {
+            codemirrorView.value = payload.view
+        }
+
         const extensions = [
             markdown(),
             EditorView.lineWrapping,
@@ -175,12 +198,14 @@ export default {
         ];
         return {
             extensions,
+            handleReady,
+            codemirrorView
         };
     },
     computed: {
         compiledMarkdown: function () {
             return DOMPurify.sanitize(
-                this.md?.render(this.preProcessText(this.inputText)) ?? ""
+                this.md?.render(this.inputText) ?? ""
             );
         },
         showLeftPane() {
@@ -211,12 +236,16 @@ export default {
         this.currentLayout = userPreferences?.currentLayout ?? 2;
         this.spellCheck = userPreferences?.spellCheck ?? false;
         this.currentTheme = userPreferences?.currentTheme ?? false;
+        this.scrollLink = userPreferences?.scrollLink ?? true;
 
         // enable spellcheck
         this.updateSpellCheck();
 
         // update theme
         this.updateTheme();
+
+        // setup listeners
+        this.setupListeners();
     },
     mounted() {
 
@@ -224,6 +253,7 @@ export default {
         this.md = new MarkdownIt({
             linkify: true,
         }).use(MarkdownitSup)
+            .use(MarkdownItInjectLineNumbers)
             .use(MarkdownitSub)
             .use(MarkdownitEmoji)
             .use(MarkdownitCheckbox, {
@@ -236,54 +266,190 @@ export default {
                 node.setAttribute("target", "_blank");
             }
         });
-
-        // override the ctrl+s key combo
-        document.onkeydown = async (e) => {
-            let prevent = false;
-            if (e.ctrlKey) {
-                if (e.code === "KeyO") {
-                    // open file
-                    await this.onOpenFile();
-                    prevent = true;
-                } else if (e.code === "KeyS") {
-                    if (e.shiftKey) {
-                        // save as
-                        await this.onSaveAsFile();
-                        prevent = true;
-                    } else {
-                        // save
-                        await this.onSaveFile();
-                        prevent = true;
-                    }
-                } else if (e.code === "Tab") {
-                    // focus open button (escape editor focus)
-                    document.getElementById("open-button").focus();
-                    prevent = true;
-                }
-            }
-
-            if (prevent) {
-                e.preventDefault();
-            }
-        };
-    },
-    updated() {
-        this.$nextTick(() => {
-            this.updateSpellCheck();
-        });
     },
     methods: {
-        preProcessText(text) {
-            // pre-process the text before rendering
-
-            // nothing for now
-            return text;
-        },
+        /**
+         * Helper Functions
+        */
         async ipcCallWrapper(...args) {
             // call ipcRenderer only if it is defined
             return await window.ipcRenderer?.call(...args)
         },
-        onUpdate() {
+        setupListeners() {
+
+            // override the ctrl+s key combo
+            document.onkeydown = async (e) => {
+                let prevent = false;
+                if (e.ctrlKey) {
+                    if (e.code === "KeyO") {
+                        // open file
+                        await this.onOpenFile();
+                        prevent = true;
+                    } else if (e.code === "KeyS") {
+                        if (e.shiftKey) {
+                            // save as
+                            await this.onSaveAsFile();
+                            prevent = true;
+                        } else {
+                            // save
+                            await this.onSaveFile();
+                            prevent = true;
+                        }
+                    } else if (e.code === "Tab") {
+                        // focus open button (escape editor focus)
+                        document.getElementById("open-button").focus();
+                        prevent = true;
+                    }
+                }
+
+                if (prevent) {
+                    e.preventDefault();
+                }
+            };
+
+            // setup resize listener
+            addEventListener("resize", () => {
+                this.titleBarKey = Math.random().toString(); // Update the title bar
+                this.scrollMap = undefined;
+            });
+
+            // setup scroll listeners
+            this._setupScrollEventListeners();
+        },
+        /**
+         * Scroll Functions
+        */
+        _setupScrollEventListeners() {
+
+            let viewFunc = debounce(
+                (event) => {
+                    this.syncEditorScroll(event);
+                }, 50);
+
+            let editorFunc = debounce(
+                (event) => {
+                    this.syncViewerScroll(event);
+                }, 50);
+
+            // remove scroll event handlers
+            this.$refs.viewer?.removeEventListener('scroll', viewFunc);
+            this.codemirrorView.scrollDOM?.removeEventListener('scroll', editorFunc)
+
+            // setup scroll event handler
+            this.$refs.viewer?.addEventListener('scroll', viewFunc, false)
+            this.codemirrorView.scrollDOM?.addEventListener('scroll', editorFunc, false)
+        },
+        resetScroll() {
+            let viewer = this.$refs.viewer;
+            if (viewer) {
+                viewer.scrollTop = 0;
+            }
+            let editorScroller = this.codemirrorView.scrollDOM;
+            if (editorScroller) {
+                editorScroller.scrollTop = 0;
+            }
+        },
+        buildScrollMap() {
+            let editor = this.codemirrorView.scrollDOM;
+            let preview = this.$refs.viewer
+            if (!editor || !preview) {
+                return;
+            }
+
+            let offset = preview.scrollTop - preview.offsetTop;
+            let _scrollMap = new Array(this.codemirrorView.state.doc.lines).fill(0);
+            let editorLines = this.codemirrorView.state.doc.children.map(x => x.text).flat(1);
+            editorLines.forEach((str, i) => {
+                if (i === 0) {
+                    _scrollMap[i] = 0;
+                    return;
+                }
+
+                if (str.length === 0) {
+                    _scrollMap[i] = _scrollMap[i - 1] + 1;
+                    return;
+                }
+
+                let offsetTop = document.querySelector(`[data-source-line="${i}"]`)?.offsetTop;
+                if (offsetTop !== undefined) {
+                    _scrollMap[i] = Math.floor(offsetTop + offset);
+                } else {
+                    _scrollMap[i] = _scrollMap[i - 1] + 1;
+                }
+            });
+
+            this.scrollMap = _scrollMap;
+        },
+        syncEditorScroll(event) {
+            if ((event && !event.target.matches(":hover")) || !this.scrollLink) {
+                return;
+            }
+
+            // sync editor
+            if (!this.scrollMap) {
+                this.buildScrollMap();
+            }
+            let preview = this.$refs.viewer;
+            let editorScroller = this.codemirrorView.scrollDOM;
+
+            if (!preview || !editorScroller || this.scrollMap.length < 1) {
+                return;
+            }
+
+            let el;
+            let min = Number.MAX_VALUE;
+            let els = document.querySelectorAll('[data-source-line]');
+            for (let i = 0; i < els.length; i++) {
+                let top = Math.abs(els[i].getBoundingClientRect().top);
+                if (top < min) {
+                    min = top;
+                    el = els[i];
+                }
+            }
+            let lineNo = parseInt(el?.dataset.sourceLine ?? 0);
+            editorScroller.scrollTop = lineNo * this.codemirrorView.defaultLineHeight;
+
+            // lock the scroller of the editor until animation is complete
+            this.scrollLock[1] = true;
+            editorScroller?.addEventListener('scrollend', () => {
+                // release lock
+                this.scrollLock[1] = false;
+            }, { once: true })
+
+        },
+        syncViewerScroll(event) {
+            if ((event && !event.target.matches(":hover")) ||
+                (event && event.target.matches(":hover") && this.scrollLock[1]) ||
+                !this.scrollLink) {
+                return;
+            }
+
+            // sync preview
+            if (!this.scrollMap) {
+                this.buildScrollMap();
+            }
+            let preview = this.$refs.viewer;
+            let editorScroller = this.codemirrorView.scrollDOM;
+
+            if (!preview || !editorScroller) {
+                return;
+            }
+
+            let editorTopHeight = this.codemirrorView.lineBlockAtHeight(editorScroller.scrollTop).from;
+            let topLineNo = this.codemirrorView.state.doc.lineAt(editorTopHeight).number
+            preview.scrollTop =  this.scrollMap[topLineNo - 1];
+
+            // lock the scroller of the viewer until animation is complete
+            this.scrollLock[0] = true;
+            preview?.addEventListener('scrollend', () => {
+                // release lock
+                this.scrollLock[0] = false;
+            }, { once: true })
+        },
+        /**
+         * On Change Functions
+        */
+        onInputUpdate() {
             if (this.fileOpened) {
                 this.fileOpened = false;
                 this.modified = false;
@@ -292,7 +458,11 @@ export default {
                 this.modified = true;
                 this.ipcCallWrapper(IPCCommands.SET_MODIFIED, true, this.inputText);
             }
+            this.scrollMap = undefined;
         },
+        /**
+         * IO Functions
+        */
         async onOpenFile() {
             if (this.editorLocked) {
                 return;
@@ -305,6 +475,9 @@ export default {
                 if (data !== undefined) {
                     this.fileOpened = true;
                     this.inputText = data;
+
+                    this.resetScroll();
+                    this.scrollMap = undefined;
                 }
             } else {
                 // use browser to handle open file
@@ -316,21 +489,34 @@ export default {
                     let files = Array.from(inputEl.files);
                     if (files.length > 0) {
                         let file = files[0];
-                        var reader = new FileReader();
+                        let reader = new FileReader();
                         reader.readAsText(file);
                         reader.onload = () => {
                             this.fileOpened = true;
                             this.inputText = reader.result;
+
+                            this.resetScroll();
+                            this.scrollMap = undefined;
+
+                            this.titleBarKey = Math.random().toString(); // Update the title bar
+                            this.modified = false;
+                            this.editorLocked = false;
                         }
                         inputEl.remove();
                     }
                 };
+                inputEl.oncancel = () => {
+                    this.modified = false;
+                    this.editorLocked = false;
+                }
                 inputEl.click();
             }
 
-            this.titleBarKey = Math.random().toString(); // Update the title bar
-            this.modified = false;
-            this.editorLocked = false;
+            if (this.isIPCSupported) {
+                this.titleBarKey = Math.random().toString(); // Update the title bar
+                this.modified = false;
+                this.editorLocked = false;
+            }
         },
         async onSaveFile() {
             if (this.editorLocked) {
@@ -378,10 +564,10 @@ export default {
                 }
             } else {
                 // use browser to handle save file
-                var fileBlob = new Blob([this.inputText], { type: 'text/plain' });
-                var fileNameToSaveAs = "file.md";
+                let fileBlob = new Blob([this.inputText], { type: 'text/plain' });
+                let fileNameToSaveAs = "file.md";
 
-                var downloadLink = document.createElement("a");
+                let downloadLink = document.createElement("a");
                 downloadLink.download = fileNameToSaveAs;
                 downloadLink.innerHTML = "Download File";
                 downloadLink.style.display = "none";
@@ -391,7 +577,10 @@ export default {
                 } else {
                     // Firefox requires the link to be added to the DOM before it can be clicked.
                     downloadLink.href = window.URL.createObjectURL(fileBlob);
-                    downloadLink.onclick = () => downloadLink.remove();
+                    downloadLink.onclick = () => {
+                        downloadLink.remove();
+                        this.editorLocked = false;
+                    }
                     document.body.appendChild(downloadLink);
                 }
 
@@ -400,8 +589,25 @@ export default {
 
             this.editorLocked = false;
         },
+        /**
+         * Tool Bar Functions
+        */
         onLayoutChange() {
             this.currentLayout = (this.currentLayout + 1) % 3;
+
+            if (this.currentLayout === 2) {
+                this.$nextTick(() => {
+                    // set up scroll listeners again
+                    this._setupScrollEventListeners();
+                });
+                this.syncViewerScroll();
+            } else if (this.currentLayout > 0) {
+                this.$nextTick(() => {
+                    // set spell check
+                    this.updateSpellCheck();
+                });
+            }
+
             this.updatePreferences();
         },
         onSpellCheckToggle() {
@@ -414,8 +620,15 @@ export default {
             this.updateTheme();
             this.updatePreferences();
         },
+        onScrollLinkToggle() {
+            this.scrollLink = !this.scrollLink
+            if (this.scrollLink) {
+                this.syncViewerScroll();
+            }
+            this.updatePreferences();
+        },
         updateSpellCheck() {
-            let el = document.getElementsByClassName("cm-content")[0];
+            let el = this.codemirrorView.contentDOM;
             if (el) {
                 el.spellcheck = this.spellCheck;
             }
@@ -440,7 +653,8 @@ export default {
             let preferences = {
                 currentLayout: this.currentLayout,
                 spellCheck: this.spellCheck,
-                currentTheme: this.currentTheme
+                currentTheme: this.currentTheme,
+                scrollLink: this.scrollLink
             };
             if (this.isIPCSupported) {
                 // set preferences to file
