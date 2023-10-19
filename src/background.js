@@ -52,7 +52,7 @@ async function createWindow() {
   });
 
   mainWindowState.manage(win);
-  //win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   win.webContents.session.setSpellCheckerLanguages(["en-US"]);
   win.webContents.on("context-menu", (_, params) => {
@@ -206,50 +206,7 @@ async function createWindow() {
     return 2;
   };
 
-  ipcMain.handle(IPCCommands.SAVE_FILE, saveFileHandler);
-  ipcMain.handle(IPCCommands.SAVE_AS_FILE, saveAsFileHandler);
-
-  ipcMain.handle(IPCCommands.GET_PREFERENCES, () => {
-    return preferences;
-  });
-
-  ipcMain.handle(IPCCommands.SET_PREFERENCES, (_, newPreferences) => {
-    preferences = newPreferences;
-    storage.set("user-preferences", preferences);
-  });
-
-  ipcMain.handle(IPCCommands.GET_FILENAME, () => {
-    return lastFileName;
-  });
-
-  ipcMain.handle(IPCCommands.GET_MAXIMIZED_STATE, () => {
-    return win.isMaximized();
-  });
-
-  ipcMain.handle(IPCCommands.CLOSE, () => {
-    win.close();
-  });
-
-  ipcMain.handle(IPCCommands.MAXIMIZE, () => {
-    win.maximize();
-  });
-
-  ipcMain.handle(IPCCommands.UNMAXIMIZE, () => {
-    win.unmaximize();
-  });
-
-  ipcMain.handle(IPCCommands.MINIMIZE, () => {
-    win.minimize();
-  });
-
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: "deny" };
-  });
-
-  win.on("page-title-updated", (event) => event.preventDefault());
-
-  win.on("close", (event) => {
+  const closeHandler = (event) => {
     if (lastModified) {
       let response = dialog.showMessageBoxSync(null, {
         type: "question",
@@ -275,6 +232,57 @@ async function createWindow() {
         }
       }
     }
+  }
+
+  ipcMain.handle(IPCCommands.SAVE_FILE, saveFileHandler);
+  ipcMain.handle(IPCCommands.SAVE_AS_FILE, saveAsFileHandler);
+
+  ipcMain.handle(IPCCommands.GET_PREFERENCES, () => {
+    return preferences;
+  });
+
+  ipcMain.handle(IPCCommands.SET_PREFERENCES, (_, newPreferences) => {
+    preferences = newPreferences;
+    storage.set("user-preferences", preferences);
+  });
+
+  ipcMain.handle(IPCCommands.GET_FILENAME, () => {
+    return lastFileName;
+  });
+
+  ipcMain.handle(IPCCommands.GET_MAXIMIZED_STATE, () => {
+    return win.isMaximized();
+  });
+
+  ipcMain.handle(IPCCommands.CLOSE_APP, () => {
+    closeHandler();
+  });
+
+  ipcMain.handle(IPCCommands.CLOSE_FILE, () => {
+    win.close();
+  });
+
+  ipcMain.handle(IPCCommands.MAXIMIZE, () => {
+    win.maximize();
+  });
+
+  ipcMain.handle(IPCCommands.UNMAXIMIZE, () => {
+    win.unmaximize();
+  });
+
+  ipcMain.handle(IPCCommands.MINIMIZE, () => {
+    win.minimize();
+  });
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  win.on("page-title-updated", (event) => event.preventDefault());
+
+  win.on("close", (event) => {
+    closeHandler(event);
   });
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {

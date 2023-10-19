@@ -11,30 +11,47 @@
             />
         </div>
         <div class="row">
-            <splitpanes class="default-theme">
-                <pane v-if="showLeftPane">
-                    <div id="editor-col" class="p-0 column">
-                        <codemirror v-model="inputText"
-                        :style="{
-                            width: '100%',
-                            height: '100%',
-                        }"
-                        placeholder=""
-                        :autofocus="true"
-                        :indent-with-tab="true"
-                        :tab-size="2"
-                        :extensions="codemirrorExtensions"
-                        :disabled="editorLocked"
-                        @ready="handleReady"
-                        @change="onInputUpdate" />
-                    </div>
-                </pane>
-                <pane v-if="showRightPane">
-                    <div id="view-col" class="p-0 column" ref="viewer">
-                        <div v-html="compiledMarkdown" class="preview"></div>
-                    </div>
-                </pane>
-            </splitpanes>
+            <div class="col-1 side-bar-col p-0" v-if="isIPCSupported">
+                <SideBarV
+                    :editorLocked="editorLocked"
+                    :currentTheme="currentTheme"
+                    :isIPCSupported="isIPCSupported"
+                    @toggle-explorer="onExplorerToggle"
+                />
+            </div>
+            <div class="col p-0">
+                <splitpanes>
+                    <pane v-if="fileExplorerExpanded && isIPCSupported" size="15" min-size="15" max-size="20">
+                        <ExplorerV
+                            :editorLocked="editorLocked"
+                            :currentTheme="currentTheme"
+                            :isIPCSupported="isIPCSupported"
+                        />
+                    </pane>
+                    <pane v-if="showLeftPane" min-size="20">
+                        <div id="editor-col" class="p-0 column">
+                            <codemirror v-model="inputText"
+                            :style="{
+                                width: '100%',
+                                height: '100%',
+                            }"
+                            placeholder=""
+                            :autofocus="true"
+                            :indent-with-tab="true"
+                            :tab-size="2"
+                            :extensions="codemirrorExtensions"
+                            :disabled="editorLocked"
+                            @ready="handleReady"
+                            @change="onInputUpdate" />
+                        </div>
+                    </pane>
+                    <pane v-if="showRightPane" min-size="20">
+                        <div id="view-col" class="p-0 column" ref="viewer">
+                            <div v-html="compiledMarkdown" class="preview"></div>
+                        </div>
+                    </pane>
+                </splitpanes>
+            </div>
         </div>
         <div class="row">
             <ToolBarV
@@ -75,34 +92,39 @@ import MarkdownitEmoji from 'markdown-it-emoji';
 
 import DOMPurify from "dompurify";
 
-import ToolBarV from "./ToolBar.vue";
-import TitleBarV from "./TitleBar.vue";
+import ToolBarV from "./bar/ToolBar.vue";
+import SideBarV from "./bar/SideBar.vue";
+import ExplorerV from "./explorer/Explorer.vue";
+import TitleBarV from "./bar/TitleBar.vue";
 import IPCCommands from "@/ipcCommands";
 
 export default {
     name: "EditorV",
     components: {
         Codemirror,
-        TitleBarV,
-        ToolBarV,
         Splitpanes,
         Pane,
+        SideBarV,
+        TitleBarV,
+        ExplorerV,
+        ToolBarV
     },
     data() {
         return {
             inputText: "",
             titleBarKey: "",
+            md: undefined,
             modified: false,
             currentLayout: 2,
             currentTheme: false,
-            scrollLink: true,
             spellCheck: false,
-            editorLocked: false,
             fileOpened: false,
+            fileExplorerExpanded: false,
             renderer: undefined,
-            md: undefined,
+            scrollLink: true,
             scrollMap: undefined,
             scrollLock: [false, false],
+            editorLocked: false,
             isIPCSupported: false
         };
     },
@@ -367,7 +389,18 @@ export default {
 
             let offset = preview.scrollTop - preview.offsetTop;
             let _scrollMap = new Array(this.codemirrorView.state.doc.lines).fill(0);
-            let editorLines = this.codemirrorView.state.doc.children.map(x => x.text).flat(1);
+
+            let editorLines = [];
+
+            // check if it is text node or text leaf
+            if (this.codemirrorView.state.doc.text !== undefined) {
+                // text node
+                editorLines = this.codemirrorView.state.doc.text;
+            } else {
+                // text leaf
+                editorLines = this.codemirrorView.state.doc.children.map(x => x.text).flat(1);
+            }
+
             editorLines.forEach((str, i) => {
                 if (i === 0) {
                     _scrollMap[i] = 0;
@@ -596,6 +629,12 @@ export default {
             }
 
             this.editorLocked = false;
+        },
+        /**
+         * Side Bar Functions
+        */
+        onExplorerToggle() {
+            this.fileExplorerExpanded = !this.fileExplorerExpanded;
         },
         /**
          * Tool Bar Functions

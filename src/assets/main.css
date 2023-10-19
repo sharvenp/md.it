@@ -7,6 +7,8 @@
 :root {
     --preview-color: rgb(243, 243, 243);
 
+	--explorer-color: rgb(235, 235, 235);
+
     --text-primary-color: black;
 
 	--el-body-color: rgb(221, 221, 221);
@@ -17,7 +19,9 @@
 	--el-blockquote-text-color: rgba(0, 0, 0, 0.5);
     --el-table-border-color: rgb(207, 207, 207);
 
-    --accent-color: rgb(220, 222, 226);
+	--el-button-focus-color: rgb(50, 50, 50);
+
+    --accent-color: rgb(202, 203, 206);
     --logo-color: rgb(58, 58, 58);
     --logo-border-color: rgb(173, 173, 173);
     --scrollbar-corner-color: rgba(255, 255, 255, 0);
@@ -28,6 +32,8 @@
 :root.dark-theme {
     --preview-color: rgb(40, 44, 52);
 
+	--explorer-color: rgb(28, 32, 39);
+
     --text-primary-color: white;
 
 	--el-body-color: rgb(23, 24, 29);
@@ -37,6 +43,8 @@
 	--el-blockquote-color: rgba(255, 255, 255, 0.4);
 	--el-blockquote-text-color: rgba(255 255, 255, 0.5);
     --el-table-border-color: rgba(255, 255, 255, 0.548);
+
+	--el-button-focus-color: rgb(209, 209, 209);
 
     --accent-color: rgb(48, 54, 61);
     --logo-color: rgb(189, 185, 185);
@@ -173,7 +181,7 @@ table {
     overflow: auto;
 }
 
-.splitpanes--vertical>.splitpanes__splitter {
+.splitpanes--vertical > .splitpanes__splitter {
     border: none !important;
     width: 10px !important;
     background-color: var(--accent-color) !important;
@@ -212,6 +220,37 @@ table {
 
 .file-name {
 	color: var(--text-primary-color);
+}
+
+/* Side Bar CSS */
+
+.side-bar-col {
+	width: 60px !important;
+    background-color: var(--el-body-color);
+	border-top: var(--accent-color) 2px solid;
+	border-right: var(--accent-color) 2px solid;
+}
+
+.side-flex-bar {
+	background-color: var(--el-body-color);
+}
+
+/* Explorer CSS */
+
+.explorer {
+	background-color: var(--explorer-color);
+	color: var(--text-primary-color);
+}
+
+.explorer-file-view {
+	height: 94%;
+	border-top: var(--accent-color) 2px solid;
+}
+
+.explorer-bottom-bar {
+	height: 6%;
+	border-top: var(--accent-color) 2px solid;
+    background-color: var(--el-body-color);
 }
 
 /* Tool Bar CSS */
@@ -256,4 +295,10 @@ table {
 
 ::-webkit-scrollbar-thumb:hover {
 	background-color: var(--scrollbar-color-hover);
+}
+
+/* Accessibility */
+
+button:focus, a:focus {
+	border: 2px solid var(--el-button-focus-color) !important;
 }
